@@ -61,3 +61,30 @@ Secrets consumed: `VT_API_KEY`, `ABUSEIPDB_API_KEY` (stored in **Repo → Setti
 - `REPORT_FORMATS` – enable/disable Markdown, JSON, CSV
 
 ---
+
+**Repo structure**|
+```
+ioc-inspector/
+├── analyzer/
+│   ├── __init__.py
+│   ├── pdf_parser.py
+│   ├── doc_parser.py
+│   ├── heuristics.py
+│   ├── macro_analyzer.py
+│   ├── url_reputation.py
+│   ├── abuseipdb_check.py
+│   └── report_generator.py
+├── examples/
+│   └── sample_invoice.docx
+├── reports/
+│   └── .gitkeep
+├── main.py
+├── config.py
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── README.md
+└── .github/
+    └── workflows/
+        └── analyzer.yml
+```
