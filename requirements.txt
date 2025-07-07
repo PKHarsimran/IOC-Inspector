@@ -1,26 +1,17 @@
-# ------------------
-# Document parsing libraries
-# ------------------
-oletools           # VBA macro + OLE stream analysis
-olefile            # Low‑level OLE container access (dependency of oletools)
-pdfminer.six       # Static PDF text & object extraction
-PyMuPDF            # Alternate PDF parser (handles embedded files + JavaScript)
+# ── Core document-parsing dependencies ─────────────────────────────────
+oletools==0.60.1        # VBA macro + OLE analysis
+olefile==0.46           # Low-level OLE container helper
+pdfminer.six==20231228  # Static PDF text & object extraction
+PyMuPDF==1.24.3         # Fast PDF parser (embeds + JavaScript)
 
-# ------------------
-# IOC extraction & enrichment
-# ------------------
-requests           # REST calls to VirusTotal, AbuseIPDB, URLScan
-python-dotenv      # Load API keys from a .env file
-tldextract         # Cleanly split sub‑domain / domain / TLD for URL IOC parsing
+# ── IOC extraction & enrichment ───────────────────────────────────────
+requests==2.32.3        # HTTP calls for VT & AbuseIPDB
+python-dotenv==1.0.1    # Load API keys from .env
+tldextract==5.1.2       # Clean URL domain/TLD splitting
 
-# ------------------
-# Report generation
-# ------------------
-Jinja2             # Render Markdown / HTML reports via templates
+# ── Reporting (Markdown / JSON done in-code) ──────────────────────────
+# Jinja2==3.1.4         # Template engine (only needed if you swap to HTML templates)
 
-# ------------------
-# Optional CLI niceties (safe to omit)
-# ------------------
-rich               # Colourful console output & progress bars
-tabulate           # Pretty ASCII tables for verbose mode
-```
+# ── Optional CLI niceties (safe to omit) ──────────────────────────────
+# rich==13.7.1          # Colourful console output & progress bars
+# tabulate==0.9.0       # Pretty ASCII tables in verbose mode
