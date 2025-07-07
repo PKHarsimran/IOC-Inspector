@@ -1,0 +1,26 @@
+# ------------------
+# Document parsing libraries
+# ------------------
+oletools           # VBA macro + OLE stream analysis
+olefile            # Low‑level OLE container access (dependency of oletools)
+pdfminer.six       # Static PDF text & object extraction
+PyMuPDF            # Alternate PDF parser (handles embedded files + JavaScript)
+
+# ------------------
+# IOC extraction & enrichment
+# ------------------
+requests           # REST calls to VirusTotal, AbuseIPDB, URLScan
+python-dotenv      # Load API keys from a .env file
+tldextract         # Cleanly split sub‑domain / domain / TLD for URL IOC parsing
+
+# ------------------
+# Report generation
+# ------------------
+Jinja2             # Render Markdown / HTML reports via templates
+
+# ------------------
+# Optional CLI niceties (safe to omit)
+# ------------------
+rich               # Colourful console output & progress bars
+tabulate           # Pretty ASCII tables for verbose mode
+```
