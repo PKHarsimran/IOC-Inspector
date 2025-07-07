@@ -2,10 +2,6 @@
 
 **Fast, SOC-ready malicious-document scanner** — turn suspicious PDFs, DOC(X), XLS(X) & RTFs into IOC-rich, SIEM-friendly reports.
 
-<p align="center">
-  <img src="docs/img/console_demo.png" width="640"><br>
-  <em>Console summary (left) & Markdown report snippet (right)</em>
-</p>
 
 ---
 
