@@ -40,7 +40,9 @@ jobs:
 
     # ── 4. Run unit tests ─────────────────────────────────────────────
     - name: Run pytest
-      run: pytest -q
+      run: |
+        export PYTHONPATH="$PWD:$PYTHONPATH"
+        pytest -q
 
     # ── 5. End-to-end CLI smoke test ─────────────────────────────────
     - name: End-to-end CLI test
