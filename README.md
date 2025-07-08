@@ -98,7 +98,7 @@ ioc-inspector/
 │   ├── __init__.py
 │   ├── pdf_parser.py
 │   ├── doc_parser.py
-│   ├── macro_analyzer.py
+│   ├── macro_analyzer.py                < --- Work in progress
 │   ├── url_reputation.py
 │   ├── abuseipdb_check.py
 │   ├── heuristics.py
