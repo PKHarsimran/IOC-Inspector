@@ -174,6 +174,18 @@ flowchart TD
 ```
 
 
+**What happens step-by-step**
+
+| Stage | Module | Job |
+|-------|--------|-----|
+| **CLI** | `main.py` | Reads flags, builds file list, prints a headline. |
+| **Dispatcher** | `ioc_inspector_core/__init__.py` | Routes each file to the right parser. |
+| **Parsers** | `pdf_parser.py` & `doc_parser.py` | Extract URLs, IPs, macros, embeds, JavaScript. |
+| **Enrichment** | `url_reputation.py`, `abuseipdb_check.py` | Query VirusTotal & AbuseIPDB; attach verdicts. |
+| **Scoring** | `heuristics.py` | Apply weights, produce 0-100 risk score & verdict. |
+| **Reporting** | `report_generator.py` | Write Markdown + JSON with IOC tables. |
+| **Logging** | `logger.py` | Console + rotating file breadcrumbs for every stage. |
+
 ## ➡️ Pathway
 
 | Stage        | Still to do before the next stage |
