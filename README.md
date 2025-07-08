@@ -57,7 +57,7 @@ logger.py  →  stdout + ./logs/ioc_inspector.log
 ## 🚀 Quick Start
 ```bash
 # 1 – Clone
-$ git clone https://github.com/<your-user>/ioc-inspector.git
+$ git clone https://github.com/PKHarsimran/IOC-Inspector.git
 $ cd ioc-inspector
 
 # 2 – Install
