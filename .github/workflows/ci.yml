@@ -37,13 +37,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest click          # extras only needed in CI
+        pip install -e . 
 
     # ── 4. Run unit tests ─────────────────────────────────────────────
     - name: Run pytest
-      shell: bash
-      run: |
-        export PYTHONPATH="$PWD:$PYTHONPATH"
-        pytest -q
+      run: pytest -q
 
     # ── 5. End-to-end CLI smoke test ─────────────────────────────────
     - name: End-to-end CLI test
