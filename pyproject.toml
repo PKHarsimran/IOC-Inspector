@@ -3,10 +3,10 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ioc_inspector"          # ⭢ must match the import you use in tests
-version = "0.0.0"
+name        = "ioc_inspector"
+version     = "0.0.0"
 description = "Static IOC extractor and scorer for PDFs & Office docs"
 
 [tool.setuptools]
-packages = ["ioc_inspector_core"]          # directories with __init__.py
-py-modules = ["logger", "settings"]        # single-file modules at repo root
+packages   = ["ioc_inspector_core"]         # directories containing __init__.py
+py-modules = ["logger", "settings"]         # single-file modules at repo root
