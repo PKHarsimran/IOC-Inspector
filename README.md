@@ -145,19 +145,32 @@ ioc-inspector/
 > and skip the optional “niceties.”  
 > Uncomment them in `requirements.txt` whenever you want fancy console output.
 
-### 🗺️ Architecture flow
+### 🗺️ How the code flows
 
 ```mermaid
 flowchart TD
-    CLI["CLI (main.py / Click)"] --> DISPATCH["Dispatcher"]
-    DISPATCH --> PDF["PDF parser"]
-    DISPATCH --> OFFICE["Office parser"]
-    PDF --> ENRICH["Reputation enrichment"]
+    %% 1 — Top-level CLI
+    CLI["CLI (main.py)"] --> DISPATCH["Dispatcher (ioc_inspector_core/__init__)"]
+
+    %% 2 — Parsers
+    subgraph "Parsers"
+        DISPATCH --> PDF["pdf_parser.py"]
+        DISPATCH --> OFFICE["doc_parser.py"]
+    end
+
+    %% 3 — Reputation enrichment
+    PDF --> ENRICH
     OFFICE --> ENRICH
-    ENRICH --> SCORE["Heuristics"]
-    SCORE --> REPORT["Report generator"]
-    SCORE --> LOG["Logger"]
-    REPORT --> OUTPUT["Markdown / JSON"]
+    subgraph "Reputation enrichment"
+        ENRICH --> VT["url_reputation.py  ⇢  VirusTotal"]
+        ENRICH --> ABIP["abuseipdb_check.py  ⇢  AbuseIPDB"]
+    end
+
+    %% 4 — Scoring & output
+    ENRICH --> SCORE["heuristics.py"]
+    SCORE --> REPORT["report_generator.py"]
+    SCORE --> LOG["logger.py"]
+    REPORT --> OUTPUT["Markdown / JSON report"]
 ```
 
 
