@@ -66,7 +66,7 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
                 _ENDPOINT, headers=_HEADERS, params=params, timeout=10
             )
             if r.status_code != 200:
-                log.warning("AbuseIPDB %s → HTTP %s", ip, r.status_code)
+                log.warning("AbuseIPDB %s -> HTTP %s", ip, r.status_code)
                 continue
             data = r.json().get("data", {})
         except Exception as exc:  # pragma: no cover
@@ -81,7 +81,7 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
             "malicious":        conf >= ABUSE_CONFIDENCE_CUTOFF,
         }
 
-        log.debug("AbuseIPDB %s → conf=%d, reports=%s", ip, conf, data.get("totalReports"))
+        log.debug("AbuseIPDB %s -> conf=%d, reports=%s", ip, conf, data.get("totalReports"))
         time.sleep(_RATE_PAUSE)  # stay under free-tier limit
 
     return out
