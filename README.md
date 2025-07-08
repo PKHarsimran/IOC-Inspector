@@ -120,6 +120,31 @@ ioc-inspector/
     └── workflows/
         └── analyzer.yml        ← CI + manual scan action
 ```
+---
+
+## 📦 Dependencies at a Glance
+
+| Category | Package | Why it’s needed |
+|----------|---------|-----------------|
+| **Core document parsing** | `oletools 0.60.1` | Extract VBA macros & OLE streams from DOC/XLS/RTF |
+| | `olefile 0.46` | Low-level helper used by oletools |
+| | `pdfminer.six 20231228` | Scrape plain text & objects out of PDFs |
+| | `PyMuPDF 1.24.3` | Fast parser for embedded files & JavaScript inside PDFs |
+| **IOC extraction & enrichment** | `requests 2.32.3` | Make REST calls to VirusTotal & AbuseIPDB |
+| | `python-dotenv 1.0.1` | Load API keys from `.env` without hard-coding secrets |
+| | `tldextract 5.1.2` | Split domain / sub-domain / TLD cleanly in URLs |
+| **Reporting** | *(built-in Markdown / JSON generators)* | |
+| | *Optional* `Jinja2 3.1.4` | Only needed if you later switch to HTML-template reports |
+| **CLI niceties (optional)** | `rich 13.7.1` | Colourful console output & progress bars |
+| | `tabulate 0.9.0` | Pretty ASCII tables for verbose mode |
+
+> **Tip:** If you just want the core scanner, install with  
+> ```bash
+> pip install -r requirements.txt
+> ```  
+> and skip the optional “niceties.”  
+> Uncomment them in `requirements.txt` whenever you want fancy console output.
+
 
 ## ➡️ Pathway
 
