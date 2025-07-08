@@ -149,29 +149,15 @@ ioc-inspector/
 
 ```mermaid
 flowchart TD
-    CLI[CLI (main.py / Click)]
-    DISPATCH[Dispatcher (ioc_inspector_core/__init__)]
-    PDF[PDF parser]
-    OFFICE[Office parser]
-    ENRICH[Reputation enrichment]
-    VT[VT lookup]
-    ABIP[AbuseIPDB lookup]
-    SCORE[Heuristics]
-    REPORT[Report generator]
-    LOG[Logger]
-    OUTPUT[[Markdown / JSON]]
-
-    CLI -->|flags| DISPATCH
-    DISPATCH --> PDF
-    DISPATCH --> OFFICE
-    PDF --> ENRICH
+    CLI["CLI (main.py / Click)"] --> DISPATCH["Dispatcher"]
+    DISPATCH --> PDF["PDF parser"]
+    DISPATCH --> OFFICE["Office parser"]
+    PDF --> ENRICH["Reputation enrichment"]
     OFFICE --> ENRICH
-    ENRICH --> VT
-    ENRICH --> ABIP
-    ENRICH --> SCORE
-    SCORE --> REPORT
-    SCORE --> LOG
-    REPORT --> OUTPUT
+    ENRICH --> SCORE["Heuristics"]
+    SCORE --> REPORT["Report generator"]
+    SCORE --> LOG["Logger"]
+    REPORT --> OUTPUT["Markdown / JSON"]
 ```
 
 
