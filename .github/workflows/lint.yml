@@ -11,9 +11,9 @@ on:
       - ".github/workflows/lint.yml"
   pull_request:
     paths:
-      - "**/*.py"
-      - "pyproject.toml"
-      - "requirements*.txt"
+     - "ioc_inspector_core/**/*.py"
+     - "logger.py"
+     - "settings.py"
 
 jobs:
   lint:
