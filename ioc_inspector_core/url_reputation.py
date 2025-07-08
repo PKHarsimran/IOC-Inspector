@@ -2,7 +2,7 @@
 """
 VirusTotal URL reputation
 ─────────────────────────
-Takes a list of URLs → returns:
+Takes a list of URLs -> returns:
 
     {
         "http://bad.com": {"vendors": 8, "malicious": True},
@@ -38,7 +38,7 @@ _RATE_PAUSE = 15                     # seconds (public key = 4 req/min)
 # --------------------------------------------------------------------------- #
 def _vt_url_id(url: str) -> str:
     """
-    VirusTotal URL → deterministic “URL ID” (sha256, base64url, no '=' pad).
+    VirusTotal URL -> deterministic “URL ID” (sha256, base64url, no '=' pad).
     """
     digest = hashlib.sha256(url.encode()).digest()
     return base64.urlsafe_b64encode(digest).decode().rstrip("=")
@@ -67,7 +67,7 @@ def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, int | bool]]:
         try:
             r = requests.get(f"{_ENDPOINT_SINGLE}/{url_id}", headers=headers, timeout=15)
             if r.status_code != 200:
-                log.debug("VT %s → HTTP %s", url, r.status_code)
+                log.debug("VT %s -> HTTP %s", url, r.status_code)
                 continue
 
             stats = r.json()["data"]["attributes"]["last_analysis_stats"]
@@ -76,7 +76,7 @@ def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, int | bool]]:
                 "vendors": vendors,
                 "malicious": vendors >= VT_THRESHOLD,
             }
-            log.debug("VT %s → %d malicious vendors", url, vendors)
+            log.debug("VT %s -> %d malicious vendors", url, vendors)
 
             time.sleep(_RATE_PAUSE)  # stay within free-tier quota
 
