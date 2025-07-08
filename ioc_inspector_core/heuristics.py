@@ -76,7 +76,7 @@ def score(findings: Dict) -> Dict:
     )
 
     log.debug(
-        "Scored %s → %s (%d)  /  reasons: %s",
+        "Scored %s -> %s (%d)  /  reasons: %s",
         findings.get("name") or findings.get("type"),
         verdict,
         total,
