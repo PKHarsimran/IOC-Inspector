@@ -82,7 +82,7 @@ def analyze(path: Path) -> Dict:
     # ── Score & verdict ────────────────────────────────────────────────────
     scored = score_doc(findings)
     log.info(
-        "%s scored → %s (%d)",
+        "%s scored -> %s (%d)",
         path.name,
         scored["verdict"],
         scored["score"],
