@@ -82,7 +82,7 @@ def parse_office(path: Path) -> Dict:
     findings["suspicious_keywords"] = sorted(set(findings["suspicious_keywords"]))
 
     log.debug(
-        "%s → %d URLs, %d IPs, %d keywords",
+        "%s -> %d URLs, %d IPs, %d keywords",
         path.name,
         len(findings["urls"]),
         len(findings["ips"]),
