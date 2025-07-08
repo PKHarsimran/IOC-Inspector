@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} • Py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11"]
+
+    steps:
+    # ── 1. Checkout repo ──────────────────────────────────────────────
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # ── 2. Set up the requested Python version ────────────────────────
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+        cache: "pip"
+
+    # ── 3. Install project + test dependencies ────────────────────────
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest click          # extras only needed in CI
+
+    # ── 4. Run unit tests ─────────────────────────────────────────────
+    - name: Run pytest
+      run: pytest -q
+
+    # ── 5. End-to-end CLI smoke test ─────────────────────────────────
+    - name: End-to-end CLI test
+      env:
+        VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
+      run: |
+        python main.py --file examples/test.pdf --report --quiet
+        test -f reports/test_report.md   # ensure report file was created
