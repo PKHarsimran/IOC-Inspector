@@ -36,7 +36,7 @@ def _clean_urls(urls: List[str]) -> List[str]:
 # PyMuPDF API shim helpers
 # ──────────────────────────────────────────────────────────────────────────────
 def _count_embedded_files(doc: "fitz.Document") -> int:
-    """Handle API rename (embeddedFileCount → embfile_count)."""
+    """Handle API rename (embeddedFileCount -> embfile_count)."""
     try:
         return int(doc.embeddedFileCount)  # ≤ 1.23
     except AttributeError:
@@ -60,9 +60,9 @@ def _detect_javascript(doc: "fitz.Document") -> int:
 def _page_text(page: "fitz.Page") -> str:
     """
     Normalise PyMuPDF text extraction across versions:
-        1.18  → page.getText("text")
-        1.23  → page.get_text("text")
-        1.24+ → page.get_text()
+        1.18  -> page.getText("text")
+        1.23  -> page.get_text("text")
+        1.24+ -> page.get_text()
     """
     if hasattr(page, "get_text"):
         try:
