@@ -2,13 +2,6 @@
 """
 IOC Inspector – Click-powered command-line interface
 ────────────────────────────────────────────────────
-
-Key features
-------------
-• Same flags you had before:  --file / --dir / --report / --json / --quiet / --debug
-• Pretty, colorised `--help` output courtesy of Click
-• Safe `--version` flag that shows "dev" until the project is pip-installed
-• Detailed inline comments explaining what each block does
 """
 
 from __future__ import annotations
