@@ -119,4 +119,4 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         lines.append(f"\n**Macros detected:** YES  \nSuspicious keywords: {kw}\n")
 
     out_path.write_text("\n".join(lines), encoding="utf-8")
-    log.debug("Wrote Markdown report → %s", out_path.relative_to(REPORTS_DIR.parent))
+    log.debug("Wrote Markdown report -> %s", out_path.relative_to(REPORTS_DIR.parent))
