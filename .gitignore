@@ -1,1 +1,66 @@
 
+# ── Python basics ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ── Virtual environments ─────────────────────────────────────
+# local venv / pipenv / poetry
+venv/
+.env/
+.venv/
+pip-wheel-metadata/
+sitecustomize.py
+
+# ── Build & distribution artifacts ───────────────────────────
+build/
+dist/
+*.egg-info/
+.eggs/
+*.whl
+*.manifest
+*.spec
+
+# ── Test & coverage outputs ──────────────────────────────────
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# ── IDE / editor settings ────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# ── OS / misc clutter ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# ── Project-specific artefacts ───────────────────────────────
+# Auto-generated IOC-Inspector outputs
+logs/
+reports/
+*.log
+
+# Sample malicious / test docs (safe to keep locally)
+examples/**/*.docm
+examples/**/*.pdf
+examples/**/*.docx
+examples/**/*.xlsx
+
+# GitHub Actions cache (optional – Actions handles this server-side)
+.github/workflows/__pycache__/
+
+# ── Secrets / local config ───────────────────────────────────
+.env                # your API keys (copied from .env.example)
+.env.*              # variant env files (.env.dev, etc.)
