@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 from oletools.olevba import VBA_Parser, VBA_Scanner
 from .macro_analyzer import analyze as analyze_macros
