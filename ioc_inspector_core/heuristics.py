@@ -37,6 +37,18 @@ def score(findings: Dict) -> Dict:
     if kw:
         total += min(len(kw) * 2, 15)
         reasons.append("suspicious VBA keywords")
+    # 2.5) Deep-dive macro signals  ← NEW
+    if findings.get("autoexec_funcs"):
+        total += RISK_WEIGHTS["autoexec"]
+        reasons.append("auto-exec macro")
+
+    if findings.get("string_obfuscation", 0):
+        total += RISK_WEIGHTS["obfuscation"]
+        reasons.append("obfuscation")
+
+    if findings.get("suspicious_calls"):
+        total += min(len(findings["suspicious_calls"]) * RISK_WEIGHTS["susp_call"], 15)
+        reasons.append("suspicious API calls")
 
     # 3) Reputation – URLs
     for info in findings.get("url_rep", {}).values():
