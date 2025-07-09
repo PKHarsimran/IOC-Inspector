@@ -32,7 +32,9 @@ ABUSEIPDB_API_KEY = os.getenv("ABUSEIPDB_API_KEY") # AbuseIPDB
 # -----------------------------------------------------------------------------
 RISK_WEIGHTS: dict[str, int] = {
     "macro":          25,  # any VBA macro present
+    "autoexec": 15,  # AutoOpen / Document_Open, etc.
     "obfuscation":    20,  # base64 / XOR strings, etc.
+    "susp_call": 5,  # CreateObject, Shell, URLDownloadToFile…
     "malicious_url":  30,  # VT vendors ≥ VT_THRESHOLD
     "malicious_ip":   25,  # AbuseIPDB confidence ≥ cutoff
 }
