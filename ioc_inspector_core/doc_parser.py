@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 from oletools.olevba import VBA_Parser, VBA_Scanner
-
+from .macro_analyzer import analyze as analyze_macros
 from logger import get_logger
 
 log = get_logger(__name__)
@@ -57,6 +57,7 @@ def parse_office(path: Path) -> Dict:
         log.debug("%s – macro detected: %s", path.name, findings["macro"])
 
         if findings["macro"]:
+            findings.update(analyze_macros(str(path)))
             # Iterate over each macro stream
             for (_, stream_path, vba_filename, vba_code) in vb.extract_macros():
                 log.debug("Scanning macro %s", vba_filename)
