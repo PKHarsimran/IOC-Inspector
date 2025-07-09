@@ -113,10 +113,30 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
             f"**JavaScript objects:** {result.get('js_count', 0)}\n"
         )
 
-    # Office macro info
+    # Office-macro section
     if result.get("macro"):
-        kw = ", ".join(result.get("suspicious_keywords", []))
-        lines.append(f"\n**Macros detected:** YES  \nSuspicious keywords: {kw}\n")
+        lines.append("\n### Macros\n")
+        lines.append("**Detected:** YES  ")
+
+        if result.get("autoexec_funcs"):
+            lines.append(f"**Auto-exec triggers:** {', '.join(result['autoexec_funcs'])}  ")
+
+        if result.get("suspicious_calls"):
+            lines.append(
+                f"**Suspicious calls:** {', '.join(result['suspicious_calls'])}  "
+            )
+
+        if result.get("string_obfuscation"):
+            lines.append(
+                f"**Obfuscation hits:** {result['string_obfuscation']}"
+            )
+
+        # keep keyword list for quick glance
+        if result.get("suspicious_keywords"):
+            kw = ", ".join(result["suspicious_keywords"])
+            lines.append(f"\nSuspicious keywords: {kw}")
+
+        lines.append("")  # blank line for spacing
 
     out_path.write_text("\n".join(lines), encoding="utf-8")
     log.debug("Wrote Markdown report -> %s", out_path.relative_to(REPORTS_DIR.parent))
