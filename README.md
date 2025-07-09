@@ -183,12 +183,7 @@ flowchart TD
 
 | Stage        | Still to do before the next stage |
 |--------------|-----------------------------------|
-| **pre-0.1** *(current)* | • 
-* **Static-Analysis row** now highlights the *deep auto-exec / suspicious-API* logic.  
-* **Repo layout** marks `macro_analyzer.py` as a first-class module.  
-* **Config snippet** adds `autoexec` and `susp_call` weights.  
-* **Dependency table** clarifies that `oletools 0.60+` is required for the new API.  
-* Minor wording tweaks throughout to reflect the new capability. |
+| **pre-0.1** *(current)* | • Pin library versions in `requirements.txt`<br>• Add unit tests for PDF & macro branches<br>• Tighten error handling / logging<br>• Ensure CI passes on Linux + Windows<br>• Final README polish |
 | **0.1**      | Dependency-pinned CLI with Markdown / JSON output and a passing test-suite |
 | **0.2**      | Optional CSV export · Docker image · extra threat-feed look-ups |
 | **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
