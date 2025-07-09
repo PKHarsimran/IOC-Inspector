@@ -183,7 +183,8 @@ flowchart TD
 
 | Stage        | Still to do before the next stage |
 |--------------|-----------------------------------|
-| **pre-0.1** *(current)* | • Pin library versions in `requirements.txt`<br>• Add unit tests for PDF & macro branches<br>• Tighten error handling / logging<br>• Ensure CI passes on Linux + Windows<br>• Final README polish |
+| **pre-0.1** *(current)* | - [ ] Pin library versions in `requirements.txt`<br>- [ ] Add unit tests for PDF & macro branches<br>- [ ] Tighten error handling / logging<br>- [ ] Ensure CI passes on **Linux + Windows**<br>- [ ] Final README polish |
 | **0.1**      | Dependency-pinned CLI with Markdown / JSON output and a passing test-suite |
 | **0.2**      | Optional CSV export · Docker image · extra threat-feed look-ups |
 | **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
+
