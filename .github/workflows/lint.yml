@@ -1,6 +1,8 @@
 name: Lint & type-check
 
 # ── Run when Python code or config changes ─────────────────────────────
+permissions:
+  contents: read
 on:
   push:
     branches: [ "main" ]
