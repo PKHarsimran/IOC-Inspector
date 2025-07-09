@@ -4,15 +4,14 @@
 
 **Fast, SOC-ready malicious-document scanner** — turn suspicious PDFs, DOC(X), XLS(X) & RTFs into IOC-rich, SIEM-friendly reports.
 
-
 ---
 
 ## ⚡ Why IOC Inspector?
 
-| 🔑  | Value to Analysts |
-|-----|------------------|
+| 🔑 | Value to Analysts |
+|----|------------------|
 | **One-command triage** | `ioc-inspector invoice.docx` → instant verdict & Markdown report |
-| **Actionable scoring** | Custom heuristics blend macro flags, embedded-object metrics, and feed look-ups (VirusTotal + AbuseIPDB) into a **0-100 risk score** |
+| **Actionable scoring** | Custom heuristics blend macro flags, **auto-exec/API hits**, embedded-object metrics and threat-feed look-ups (VirusTotal + AbuseIPDB) into a **0-100 risk score** |
 | **Analyst-first outputs** | Markdown for tickets, JSON / CSV for Splunk & Elastic |
 | **Runs anywhere** | Linux • macOS • Windows • headless in GitHub Actions |
 | **Extensible** | All logic lives in `ioc_inspector_core/` — swap parsers, add feeds, tweak weights |
@@ -21,15 +20,15 @@
 
 ## 🔍 Feature Matrix
 
-| Category            | What you get                                                                    |
-|---------------------|---------------------------------------------------------------------------------|
-| **Formats**         | PDF • DOC / DOCX • XLS / XLSX • RTF                                             |
-| **Static Analysis** | Macro dump & keyword scan • Obfuscation finder • Embedded-object counter        |
-| **IOC Extraction**  | URLs • Domains • IPs • Base64 strings • Hidden links                            |
-| **Threat Enrichment** | VirusTotal, AbuseIPDB (URLScan optional)                                      |
-| **Scoring Engine**  | Heuristic weights + rule modifiers (configurable)                               |
-| **Reporting**       | Markdown & JSON (CSV optional)                                                  |
-| **Automation**      | Dir-recursive scan • Quiet / Verbose switches • GitHub Actions workflow         |
+| Category            | What you get                                                                                      |
+|---------------------|----------------------------------------------------------------------------------------------------|
+| **Formats**         | PDF • DOC / DOCX • XLS / XLSX • RTF                                                                |
+| **Static Analysis** | Macro dump, **deep auto-exec & suspicious-API analysis**, obfuscation finder, embedded-object counter |
+| **IOC Extraction**  | URLs • Domains • IPs • Base64 blobs • Hidden links                                                 |
+| **Threat Enrichment** | VirusTotal • AbuseIPDB (URLScan optional)                                                       |
+| **Scoring Engine**  | Heuristic weights + rule modifiers (configurable)                                                  |
+| **Reporting**       | Markdown & JSON (CSV optional)                                                                     |
+| **Automation**      | Dir-recursive scan • Quiet / Verbose switches • GitHub Actions workflow                            |
 
 ---
 
@@ -42,7 +41,7 @@ main.py (CLI)
 ioc_inspector_core.__init__.analyze()
    ├─► pdf_parser.py      (if .pdf)
    ├─► doc_parser.py      (if Office/RTF)
-   │     └─► macro_analyzer.py
+   │     └─► macro_analyzer.py   ← NEW deep VBA heuristics
    │
    ├─► url_reputation.py  (VirusTotal)
    ├─► abuseipdb_check.py (AbuseIPDB)
@@ -57,19 +56,19 @@ logger.py  →  stdout + ./logs/ioc_inspector.log
 ## 🚀 Quick Start
 ```bash
 # 1 – Clone
-$ git clone https://github.com/PKHarsimran/IOC-Inspector.git
-$ cd ioc-inspector
+git clone https://github.com/PKHarsimran/IOC-Inspector.git
+cd IOC-Inspector
 
 # 2 – Install
-$ python -m venv venv && source venv/bin/activate
-$ pip install -r requirements.txt
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
 # 3 – Configure APIs
-$ cp .env.example .env
-$ nano .env            # add VT_API_KEY & ABUSEIPDB_API_KEY
+cp .env.example .env
+nano .env                      # add VT_API_KEY & ABUSEIPDB_API_KEY
 
 # 4 – Scan a file
-$ python main.py --file examples/sample_invoice.docx --report
+python main.py --file examples/sample_invoice.docx --report
 ```
 
 <details> <summary>Example output</summary>
@@ -80,14 +79,16 @@ See reports/sample_invoice_report.md for full IOC tables.
 ## ⚙️ Configuration Highlights (settings.py)
 ```python
 RISK_WEIGHTS = {
-    "macro":          25,
-    "obfuscation":    20,
-    "malicious_url":  30,
-    "malicious_ip":   25,
+    "macro":          25,   # any VBA present
+    "autoexec":       15,   # AutoOpen / Document_Open …
+    "obfuscation":    20,   # long Base-64 blobs, XOR strings
+    "susp_call":       5,   # CreateObject, Shell … (×3 capped at 15)
+    "malicious_url":  30,   # VirusTotal consensus
+    "malicious_ip":   25,   # AbuseIPDB ≥ confidence cutoff
 }
 
-VT_THRESHOLD            = 5   # vendors to flag URL/IP malicious
-ABUSE_CONFIDENCE_CUTOFF = 70  # AbuseIPDB confidence to flag IP
+VT_THRESHOLD            = 5    # vendors that must flag URL/IP malicious
+ABUSE_CONFIDENCE_CUTOFF = 70   # AbuseIPDB confidence to flag IP
 REPORT_FORMATS          = ["markdown", "json"]
 ```
 
@@ -98,28 +99,22 @@ ioc-inspector/
 │   ├── __init__.py
 │   ├── pdf_parser.py
 │   ├── doc_parser.py
-│   ├── macro_analyzer.py                < --- Work in progress
+│   ├── macro_analyzer.py       ← deep VBA heuristics
 │   ├── url_reputation.py
 │   ├── abuseipdb_check.py
 │   ├── heuristics.py
 │   └── report_generator.py
 │
-├── logger.py                   ← stdout + rotating file logger
-├── main.py                     ← CLI entry-point
-├── settings.py                 ← config + heuristic weights
+├── logger.py
+├── main.py
+├── settings.py
 │
-├── examples/                   ← safe sample docs
-├── reports/                    ← auto-generated reports (git-ignored)
-├── logs/                       ← run-time logs (git-ignored)
+├── examples/
+├── reports/        (git-ignored)
+├── logs/           (git-ignored)
 │
-├── tests/                      ← pytest unit tests
-├── requirements.txt
-├── .env.example
-├── .gitignore
-├── LICENSE
-└── .github/
-    └── workflows/
-        └── analyzer.yml        ← CI + manual scan action
+├── tests/
+└── requirements.txt
 ```
 ---
 
@@ -150,28 +145,25 @@ ioc-inspector/
 
 ```mermaid
 flowchart TD
-    %% 1 — Top-level CLI
-    CLI["CLI (main.py)"] --> DISPATCH["Dispatcher (ioc_inspector_core/__init__)"]
+    CLI["CLI (main.py)"] --> DISPATCH["Dispatcher (__init__.analyze)"]
 
-    %% 2 — Parsers
     subgraph "Parsers"
         DISPATCH --> PDF["pdf_parser.py"]
         DISPATCH --> OFFICE["doc_parser.py"]
+        OFFICE --> MACRO["macro_analyzer.py"]
     end
 
-    %% 3 — Reputation enrichment
     PDF --> ENRICH
-    OFFICE --> ENRICH
+    MACRO --> ENRICH
     subgraph "Reputation enrichment"
-        ENRICH --> VT["url_reputation.py  ⇢  VirusTotal"]
-        ENRICH --> ABIP["abuseipdb_check.py  ⇢  AbuseIPDB"]
+        ENRICH --> VT["url_reputation.py"]
+        ENRICH --> ABIP["abuseipdb_check.py"]
     end
 
-    %% 4 — Scoring & output
     ENRICH --> SCORE["heuristics.py"]
     SCORE --> REPORT["report_generator.py"]
     SCORE --> LOG["logger.py"]
-    REPORT --> OUTPUT["Markdown / JSON report"]
+    REPORT --> OUTPUT["Markdown / JSON"]
 ```
 
 
@@ -191,7 +183,12 @@ flowchart TD
 
 | Stage        | Still to do before the next stage |
 |--------------|-----------------------------------|
-| **pre-0.1** *(current)* | • Pin library versions in `requirements.txt`<br>• Add unit tests for PDF & macro branches<br>• Tighten error handling & logging<br>• Final-pass README polish |
+| **pre-0.1** *(current)* | • 
+* **Static-Analysis row** now highlights the *deep auto-exec / suspicious-API* logic.  
+* **Repo layout** marks `macro_analyzer.py` as a first-class module.  
+* **Config snippet** adds `autoexec` and `susp_call` weights.  
+* **Dependency table** clarifies that `oletools 0.60+` is required for the new API.  
+* Minor wording tweaks throughout to reflect the new capability. |
 | **0.1**      | Dependency-pinned CLI with Markdown / JSON output and a passing test-suite |
 | **0.2**      | Optional CSV export · Docker image · extra threat-feed look-ups |
 | **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
