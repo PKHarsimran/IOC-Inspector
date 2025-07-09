@@ -5,7 +5,7 @@ pdfminer.six==20231228  # Static PDF text & object extraction
 PyMuPDF==1.24.3         # Fast PDF parser (embeds + JavaScript)
 
 # ── IOC extraction & enrichment ──────────────────────────────────────────
-requests==2.32.3        # HTTP calls for VT & AbuseIPDB
+requests==2.32.4        # HTTP calls for VT & AbuseIPDB
 python-dotenv==1.0.1    # Load API keys from .env
 tldextract==5.1.2       # Clean URL domain/TLD splitting
 
