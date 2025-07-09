@@ -85,7 +85,7 @@ def parse_pdf(path: Path) -> Dict:
     try:
         for page in doc:
             # hyperlinks
-            urls += [l.get("uri") for l in page.get_links() if l.get("uri")]
+            urls += [obj_line.get("uri") for obj_line in page.get_links() if obj_line.get("uri")]
             # regex scrape from visible text
             urls += _URL_RE.findall(_page_text(page))
 
