@@ -1,4 +1,3 @@
-import os
 from ioc_inspector_core.url_reputation import lookup_urls, _vt_url_id
 
 def test_vt_url_id_is_deterministic():
