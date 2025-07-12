@@ -11,6 +11,9 @@ Deep-dive VBA inspection for Office documents.
 
 Returned keys plug straight into the existing findings → heuristics → report.
 """
+"""
+Deep-dive VBA inspection for Office documents.
+"""
 from __future__ import annotations
 
 import re
@@ -19,56 +22,34 @@ from typing import Dict, List, Set
 
 from oletools.olevba import VBA_Parser
 
-# 100 + contiguous Base-64 chars (with up to two '=' padding chars)
-_OBF_RE = r"[A-Za-z0-9+/]{100,}={0,2}"
+_OBF_RE = r"[A-Za-z0-9+/]{100,}={0,2}"  # ≥100-char Base-64 blob
 
 
 def analyze(path: str | Path) -> Dict[str, object]:
-    """
-    Inspect the VBA inside an Office document and return structured findings.
-
-    Parameters
-    ----------
-    path : str | Path
-        Path to the DOC, DOCM, XLSM, etc. file.
-
-    Returns
-    -------
-    dict
-        {
-            "autoexec_funcs": list[str],
-            "suspicious_calls": list[str],
-            "string_obfuscation": int,
-            "has_drops_payload": bool,
-            "macro_modules": list[dict[str, int]],
-        }
-    """
+    """Return a structured summary of macro behaviour."""
     vb = VBA_Parser(str(path))
 
-    # Work with type-safe containers first …
     autoexec_funcs: Set[str] = set()
     suspicious_calls: Set[str] = set()
     macro_modules: List[Dict[str, int]] = []
-    string_obfuscation: int = 0
-    has_drops_payload: bool = False
+    string_obfuscation = 0
+    has_drops_payload = False
 
     try:
-        # ── Pass 1 : scan for auto-exec & suspicious keywords ──────────
+        # ── pass 1: keyword scan ────────────────────────────────────────
         for kind, keyword, _ in vb.analyze_macros():
             if kind == "AutoExec":
                 autoexec_funcs.add(keyword)
             elif kind == "Suspicious":
                 suspicious_calls.add(keyword)
 
-        # ── Pass 2 : per-module heuristics ────────────────────────────
+        # ── pass 2: per-module heuristics ──────────────────────────────
         for (_, _, module_name, code) in vb.extract_macros():
             macro_modules.append({"name": module_name, "size": len(code)})
 
-            # 1) String-obfuscation (long Base-64)
             if re.search(_OBF_RE, code):
                 string_obfuscation += 1
 
-            # 2) Payload-dropper heuristics (first hit wins)
             if (not has_drops_payload) and any(
                 tag in code.lower() for tag in ("urldownloadtofile", "adodb.stream")
             ):
@@ -76,7 +57,6 @@ def analyze(path: str | Path) -> Dict[str, object]:
     finally:
         vb.close()
 
-    # ── Normalise sets → sorted lists for JSON-friendliness ───────────
     return {
         "autoexec_funcs": sorted(autoexec_funcs),
         "suspicious_calls": sorted(suspicious_calls),
@@ -84,3 +64,4 @@ def analyze(path: str | Path) -> Dict[str, object]:
         "has_drops_payload": has_drops_payload,
         "macro_modules": macro_modules,
     }
+
