@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, Set
+from typing import Any, Dict, Set
 
 from oletools.olevba import VBA_Parser, VBA_Scanner
 from .macro_analyzer import analyze as analyze_macros
@@ -24,7 +24,7 @@ log = get_logger(__name__)
 # Regex helpers
 # --------------------------------------------------------------------------- #
 _URL_RE = re.compile(r"https?://[\w.%/+&=?#~@:!\-]+", re.I)
-_IP_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+_IP_RE  = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 
 
 def _extract_urls(text: str) -> Set[str]:
@@ -38,12 +38,12 @@ def _extract_ips(text: str) -> Set[str]:
 # --------------------------------------------------------------------------- #
 # Main function
 # --------------------------------------------------------------------------- #
-def parse_office(path: Path) -> Dict[str, object]:
+def parse_office(path: Path) -> Dict[str, Any]:
     """
     Parse a DOC/DOCX/DOCM/XLS*/RTF file and return IOC findings.
     Raises ParserError on any failure.
     """
-    findings: Dict[str, object] = {
+    findings: Dict[str, Any] = {
         "type": "office",
         "urls": [],
         "ips": [],
@@ -51,7 +51,7 @@ def parse_office(path: Path) -> Dict[str, object]:
         "suspicious_keywords": [],
     }
 
-    log.debug("Opening %s with oletools", path.name)
+    # Try to open the file with oletools
     try:
         vb = VBA_Parser(str(path))
     except Exception as exc:
@@ -59,17 +59,18 @@ def parse_office(path: Path) -> Dict[str, object]:
         raise ParserError(f"Failed to open Office file {path}: {exc}") from exc
 
     try:
-        # detect if any macros exist
+        # Detect whether any macros are present
         findings["macro"] = vb.detect_vba_macros()
         log.debug("%s – macro detected: %s", path.name, findings["macro"])
 
         if findings["macro"]:
-            # run deeper analysis (autoexec, etc.)
+            # Deep-dive VBA analysis (autoexec, obfuscation, etc.)
             findings.update(analyze_macros(str(path)))
 
-            # then extract IOCs & keywords
+            # Extract URLs, IPs, and suspicious keywords from each macro
             for (_, stream_path, vba_filename, vba_code) in vb.extract_macros():
                 log.debug("Scanning macro %s", vba_filename)
+
                 findings["urls"].extend(_extract_urls(vba_code))
                 findings["ips"].extend(_extract_ips(vba_code))
 
@@ -96,4 +97,5 @@ def parse_office(path: Path) -> Dict[str, object]:
         len(findings["ips"]),
         len(findings["suspicious_keywords"]),
     )
+
     return findings
