@@ -36,7 +36,7 @@ _RATE_PAUSE = 1.2
 
 
 def _fetch_abuse_data(ip: str) -> Dict[str, Any]:
-    headers = {"Accept": "application/json", "Key": _API_KEY}
+    headers = {"Accept": "application/json", "Key": api_key}
     params: dict[str, Union[str, int]] = {
         "ipAddress": ip,
         "maxAgeInDays": _MAX_AGE,
@@ -55,7 +55,8 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
     """
     Look up and enrich IP addresses using AbuseIPDB.
     """
-    if not _API_KEY:
+    api_key = os.getenv("ABUSEIPDB_API_KEY")
+    if not api_key:
         log.debug("No ABUSEIPDB_API_KEY provided; skipping IP enrichment.")
         return {}
 
