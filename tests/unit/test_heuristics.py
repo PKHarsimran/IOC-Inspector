@@ -20,3 +20,17 @@ def test_score_macro_and_pdf_features():
     out = score(findings)
     assert out["score"] == 45
     assert out["verdict"] == "suspicious"
+
+def test_score_macro_autoexec_suspicious_calls():
+    findings = {
+        "macro": True,
+        "autoexec_funcs": ["AutoOpen"],
+        "suspicious_calls": ["Shell"],
+        "string_obfuscation": 1,
+        "url_rep": {},
+        "ip_rep": {},
+    }
+    out = score(findings)
+    assert out["score"] >= 50
+    assert "auto-exec macro" in out["summary"]
+    assert "suspicious API calls" in out["summary"]
