@@ -17,6 +17,7 @@ import fitz  # PyMuPDF
 
 from logger import get_logger
 from .exceptions import ParserError
+from ioc_inspector_core.pdf_parser import parse_pdf
 log = get_logger(__name__)
 
 
