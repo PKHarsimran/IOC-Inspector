@@ -5,10 +5,8 @@
 [![License: MIT](https://img.shields.io/github/license/PKHarsimran/IOC-Inspector.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.10%20|%203.11-blue)
 [![GitHub release](https://img.shields.io/github/v/release/PKHarsimran/IOC-Inspector)](https://github.com/PKHarsimran/IOC-Inspector/releases)
-
-
-
-
+[![Security](https://img.shields.io/badge/security-policy-important)](SECURITY.md)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
 **Fast, SOC-ready malicious-document scanner** — turn suspicious PDFs, DOC(X), XLS(X) & RTFs into IOC-rich, SIEM-friendly reports.
 
