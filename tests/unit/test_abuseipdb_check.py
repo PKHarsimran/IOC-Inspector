@@ -1,4 +1,3 @@
-import os
 from ioc_inspector_core.abuseipdb_check import lookup_ips
 
 def test_lookup_ips_no_api_key(monkeypatch):
