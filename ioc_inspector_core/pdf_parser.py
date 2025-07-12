@@ -7,7 +7,6 @@ PDF parser for IOC Inspector
 • Detects JavaScript
 • Compatible with PyMuPDF 1.18 → current
 """
-
 from __future__ import annotations
 
 import re
@@ -17,8 +16,9 @@ from typing import Dict, List
 import fitz  # PyMuPDF
 
 from logger import get_logger
-
+from ioc_inspector_core.exceptions import ParserError  # <- add this line
 log = get_logger(__name__)
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Regex helpers
@@ -78,14 +78,24 @@ def _page_text(page: "fitz.Page") -> str:
 def parse_pdf(path: Path) -> Dict:
     """
     Parse *path* and return IOC findings dictionary.
+    Raises ParserError on failure.
     """
-    urls: List[str] = []
-
-    doc = fitz.open(path)
+    # 1) Try to open the PDF
     try:
+        doc = fitz.open(path)
+    except Exception as exc:
+        log.error("Failed to open PDF %s: %s", path, exc)
+        raise ParserError(f"Failed to open PDF {path}: {exc}") from exc
+
+    # 2) Extract & process, catching any runtime errors
+    try:
+        urls: List[str] = []
         for page in doc:
             # hyperlinks
-            urls += [obj_line.get("uri") for obj_line in page.get_links() if obj_line.get("uri")]
+            for link in page.get_links():
+                uri = link.get("uri")
+                if uri:
+                    urls.append(uri)
             # regex scrape from visible text
             urls += _URL_RE.findall(_page_text(page))
 
@@ -110,6 +120,10 @@ def parse_pdf(path: Path) -> Dict:
             findings["js_count"],
         )
         return findings
+
+    except Exception as exc:
+        log.error("Error parsing PDF %s: %s", path, exc)
+        raise ParserError(f"Error parsing PDF {path}: {exc}") from exc
 
     finally:
         doc.close()
