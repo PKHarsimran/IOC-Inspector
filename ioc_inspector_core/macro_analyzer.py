@@ -9,8 +9,8 @@ Deep-dive VBA inspection for Office documents.
 * Notes whether the macro tries to drop a payload
 * Records module names & sizes for quick triage
 """
-main
-from __future__ import annotations   # ← must come first
+
+from __future__ import annotations
 
 import re
 from pathlib import Path
