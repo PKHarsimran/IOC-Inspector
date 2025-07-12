@@ -13,9 +13,12 @@ Returned keys plug straight into the existing findings → heuristics →
 report pipeline.
 """
 
-from __future__ import annotations
+from __future__ import annotations   # ← must come first
 
 import re
+from pathlib import Path
+from typing import Dict, List, Set
+
 from oletools.olevba import VBA_Parser
 
 # 100+ contiguous Base-64 chars (with up to two '=' padding chars)
