@@ -1,0 +1,15 @@
+# codecov.yml
+codecov:
+  notify:
+    require_ci_to_pass: yes
+  coverage:
+    status:
+      project:
+        default:
+          target: 80%           # enforce 80% overall
+      patch:
+        default:
+          target: auto         # enforce at least no decrease on PRs
+comment:
+  layout: "header, diff, files"
+  behavior: default
