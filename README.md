@@ -1,10 +1,9 @@
 # IOC Inspector 🕵️‍♂️
-[![Build Status](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml)  
+[![CI](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml)  
 [![Lint & Type-check](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml)  
 [![Coverage Status](https://codecov.io/gh/PKHarsimran/IOC-Inspector/branch/main/graph/badge.svg)](https://codecov.io/gh/PKHarsimran/IOC-Inspector)  
-[![PyPI Version](https://img.shields.io/pypi/v/ioc-inspector.svg)](https://pypi.org/project/ioc-inspector)  
-[![Python Versions](https://img.shields.io/pypi/pyversions/ioc-inspector.svg)](https://pypi.org/project/ioc-inspector)  
-[![License](https://img.shields.io/github/license/PKHarsimran/IOC-Inspector.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/PKHarsimran/IOC-Inspector.svg)](LICENSE)
+
 
 
 **Fast, SOC-ready malicious-document scanner** — turn suspicious PDFs, DOC(X), XLS(X) & RTFs into IOC-rich, SIEM-friendly reports.
