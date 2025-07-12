@@ -1,6 +1,7 @@
 # tests/conftest.py
 from pathlib import Path
-import pytest, requests
+import pytest
+import requests
 
 ROOT = Path(__file__).resolve().parents[1]        # project root
 
