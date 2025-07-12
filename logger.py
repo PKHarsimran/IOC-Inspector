@@ -63,5 +63,5 @@ def get_logger(name: str = "ioc_inspector") -> logging.Logger:
     log.addHandler(fileh)
 
     # Prevent double-logging if root configured elsewhere
-    log.propagate = False
+    log.propagate = True
     return log
