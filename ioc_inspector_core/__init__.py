@@ -16,6 +16,7 @@ from .doc_parser import parse_office
 from .url_reputation import lookup_urls
 from .abuseipdb_check import lookup_ips
 from .heuristics import score as score_doc
+from .exceptions import ParserError
 
 log = get_logger(__name__)
 
@@ -61,30 +62,35 @@ def analyze(path: Path) -> Dict:
     suffix = path.suffix.lower()
 
     # ── Parse ──────────────────────────────────────────────────────────────
-    if suffix == ".pdf":
-        log.debug("Dispatch %s as PDF", path.name)
-        findings = parse_pdf(path)
-    elif suffix in _OFFICE_EXT:
-        log.debug("Dispatch %s as Office/RTF", path.name)
-        findings = parse_office(path)
-    else:
-        log.warning("Unsupported extension for %s", path.name)
-        return {
-            "type": "unsupported",
-            "score": 0,
-            "verdict": "unknown",
-            "summary": f"Unsupported file extension: {suffix}",
-        }
+    try:
+        if suffix == ".pdf":
+            log.debug("Dispatch %s as PDF", path.name)
+            findings = parse_pdf(path)
+        elif suffix in _OFFICE_EXT:
+            log.debug("Dispatch %s as Office/RTF", path.name)
+            findings = parse_office(path)
+        else:
+            log.warning("Unsupported extension for %s", path.name)
+            return {
+                "type": "unsupported",
+                "score": 0,
+                "verdict": "unknown",
+                "summary": f"Unsupported file extension: {suffix}",
+            }
 
     # ── Enrichment ─────────────────────────────────────────────────────────
-    _enrich(findings)
+        _enrich(findings)
 
     # ── Score & verdict ────────────────────────────────────────────────────
-    scored = score_doc(findings)
-    log.info(
-        "%s scored -> %s (%d)",
-        path.name,
-        scored["verdict"],
-        scored["score"],
-    )
-    return scored
+        scored = score_doc(findings)
+        log.info(
+            "%s scored -> %s (%d)",
+            path.name,
+            scored["verdict"],
+            scored["score"],
+        )
+        return scored
+
+    except ParserError as exc:
+        log.error("ParserError during analysis of %s: %s", path.name, exc)
+        raise  # propagate further
