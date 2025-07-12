@@ -8,12 +8,8 @@ Deep-dive VBA inspection for Office documents.
 * Flags simple string-obfuscation via long Base-64 blobs
 * Notes whether the macro tries to drop a payload
 * Records module names & sizes for quick triage
-
-Returned keys plug straight into the existing findings → heuristics → report.
 """
-"""
-Deep-dive VBA inspection for Office documents.
-"""
+main
 from __future__ import annotations   # ← must come first
 
 import re
