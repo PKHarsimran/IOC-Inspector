@@ -59,6 +59,7 @@ jobs:
 
     # ── 7. End-to-end CLI smoke test ──────────────────────────────────
     - name: End-to-end CLI test
+      shell: bash
       env:
         VT_API_KEY: ${{ secrets.VT_API_KEY }}
         ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
@@ -68,5 +69,6 @@ jobs:
           echo "❌ CLI did not generate the report as expected"
           exit 1
         fi
+
 
 
