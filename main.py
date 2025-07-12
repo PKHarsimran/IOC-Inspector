@@ -13,6 +13,7 @@ from typing import List
 import click
 
 from ioc_inspector_core import analyze
+from ioc_inspector_core.exceptions import ParserError
 from ioc_inspector_core.report_generator import generate_report
 from logger import get_logger
 from settings import REPORT_FORMATS
@@ -23,7 +24,6 @@ log = get_logger(__name__)
 # Version string (shows "dev" when running from source tree)
 # --------------------------------------------------------------------------- #
 try:
-    # Will work after `pip install .`
     from importlib.metadata import PackageNotFoundError, version as _pkg_ver
 
     PKG_VER = _pkg_ver("ioc_inspector")
@@ -84,63 +84,49 @@ def cli(
     """
     Static IOC extractor + reputation scorer for PDFs & Office documents.
     """
-    # --------------------------------------------------------------------- #
-    # Sanity-check input (Click ensures at least one flag is provided, but
-    # both could technically be None if user passed neither — guard anyway).
-    # --------------------------------------------------------------------- #
     if not (file_ or dir_):
         click.echo("Error: specify --file or --dir\n", err=True)
         click.echo(click.get_current_context().get_help(), err=True)
         sys.exit(2)
 
-    # --------------------------------------------------------------------- #
-    # Enable verbose logging if requested
-    # --------------------------------------------------------------------- #
     if debug:
         get_logger().setLevel("DEBUG")
 
-    # --------------------------------------------------------------------- #
-    # Build list of targets to scan
-    # --------------------------------------------------------------------- #
-    if file_:
-        targets: List[Path] = [file_]
-    else:
-        targets = [p for p in dir_.rglob("*") if p.is_file()]
+    targets: List[Path] = [file_] if file_ else [p for p in dir_.rglob("*") if p.is_file()]
 
     if not targets:
         log.error("No files found to scan.")
         sys.exit(2)
 
-    # Flags controlling output formats
-    want_md   = report or "markdown" in REPORT_FORMATS
-    want_json = json_  or "json"     in REPORT_FORMATS
+    want_md = report or "markdown" in REPORT_FORMATS
+    want_json = json_ or "json" in REPORT_FORMATS
 
-    exit_bad = False  # non-zero exit if any doc is malicious
-    # --------------------------------------------------------------------- #
-    # Main processing loop
-    # --------------------------------------------------------------------- #
+    exit_bad = False
+
     for doc in targets:
         try:
             outcome = analyze(doc)
-        except Exception as exc:  # pragma: no cover
-            # Log full traceback, print concise error if not quiet
-            log.exception("Error analysing %s", doc)
+        except ParserError as exc:
+            log.error("ParserError analyzing %s: %s", doc.name, exc)
             if not quiet:
-                click.echo(f"[ERROR] {doc}: {exc}", err=True)
+                click.echo(f"[PARSER ERROR] {doc}: {exc}", err=True)
+            exit_bad = True
+            continue
+        except Exception as exc:
+            log.exception("Unexpected error analyzing %s", doc.name)
+            if not quiet:
+                click.echo(f"[UNEXPECTED ERROR] {doc}: {exc}", err=True)
             exit_bad = True
             continue
 
-        # Console summary (unless --quiet)
         if not quiet:
             click.echo(f"{doc}: score={outcome['score']}  verdict={outcome['verdict']}")
 
-        # Write reports
         if want_md:
             generate_report(doc, outcome, fmt="markdown")
         if want_json:
             generate_report(doc, outcome, fmt="json")
 
-        # Structured log line
         log.info(
             "%s analysed – score=%s verdict=%s",
             doc.name,
