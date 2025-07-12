@@ -14,7 +14,7 @@ Returned keys plug straight into the existing findings → heuristics → report
 """
 Deep-dive VBA inspection for Office documents.
 """
-from __future__ import annotations
+from __future__ import annotations   # ← must come first
 
 import re
 from pathlib import Path
