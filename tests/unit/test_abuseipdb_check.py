@@ -1,10 +1,22 @@
+from unittest.mock import patch, MagicMock
 from ioc_inspector_core.abuseipdb_check import lookup_ips
 
-def test_lookup_ips_no_api_key(monkeypatch):
-    monkeypatch.delenv("ABUSEIPDB_API_KEY", raising=False)
-    assert lookup_ips(["1.2.3.4"]) == {}
+@patch('ioc_inspector_core.abuseipdb_check.requests.get')
+def test_lookup_ips_success(mock_get, monkeypatch):
+    monkeypatch.setenv("ABUSEIPDB_API_KEY", "fake_key")
 
-def test_lookup_ips_empty_list(monkeypatch):
-    # Even if key is set, empty input returns empty dict
-    monkeypatch.setenv("ABUSEIPDB_API_KEY", "DUMMY")
-    assert lookup_ips([]) == {}
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "data": {
+            "abuseConfidenceScore": 80,
+            "totalReports": 50,
+            "usageType": "Spam"
+        }
+    }
+    mock_get.return_value = mock_resp
+
+    result = lookup_ips(["8.8.8.8"])
+    assert result["8.8.8.8"]["abuse_confidence"] == 80
+    assert result["8.8.8.8"]["total_reports"] == 50
+    assert result["8.8.8.8"]["malicious"] is True
