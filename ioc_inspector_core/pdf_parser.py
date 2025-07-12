@@ -16,7 +16,7 @@ from typing import Dict, List
 import fitz  # PyMuPDF
 
 from logger import get_logger
-from ioc_inspector_core.exceptions import ParserError  # <- add this line
+from .exceptions import ParserError
 log = get_logger(__name__)
 
 
