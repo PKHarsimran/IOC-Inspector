@@ -2,7 +2,8 @@
 Failure-path test: corrupt PDF should raise ParserError and log an ERROR.
 """
 
-import pytest, logging
+import logging
+import pytest
 from ioc_inspector_core.pdf_parser import parse_pdf
 from ioc_inspector_core.exceptions import ParserError
 
