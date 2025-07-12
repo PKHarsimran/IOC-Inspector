@@ -1,7 +1,7 @@
 # IOC Inspector 🕵️‍♂️
 [![CI](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml)  
 [![Lint](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml)  
-[![Codecov]([https://codecov.io/gh/PKHarsimran/IOC-Inspector/branch/main/graph/badge.svg)](https://codecov.io/gh/PKHarsimran/IOC-Inspector](https://codecov.io/github/PKHarsimran/IOC-Inspector/graph/badge.svg?token=F7IJ44D5AC)](https://codecov.io/github/PKHarsimran/IOC-Inspector))  
+[![Codecov](https://codecov.io/gh/PKHarsimran/IOC-Inspector/branch/main/graph/badge.svg?token=F7IJ44D5AC)](https://codecov.io/gh/PKHarsimran/IOC-Inspector)
 [![PyPI version](https://img.shields.io/pypi/v/ioc-inspector.svg)](https://pypi.org/project/ioc-inspector)  
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/ioc-inspector.svg)](https://pypi.org/project/ioc-inspector)  
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
