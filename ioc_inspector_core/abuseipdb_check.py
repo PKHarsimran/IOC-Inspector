@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import requests
 
@@ -37,7 +37,10 @@ _RATE_PAUSE = 1.2
 
 def _fetch_abuse_data(ip: str) -> Dict[str, Any]:
     headers = {"Accept": "application/json", "Key": _API_KEY}
-    params = {"ipAddress": ip, "maxAgeInDays": _MAX_AGE}
+    params: dict[str, Union[str, int]] = {
+        "ipAddress": ip,
+        "maxAgeInDays": _MAX_AGE,
+    }
 
     response = requests.get(_ENDPOINT, headers=headers, params=params, timeout=10)
 
