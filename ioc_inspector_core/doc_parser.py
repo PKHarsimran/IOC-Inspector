@@ -16,7 +16,7 @@ from typing import Any, Dict, Set
 from oletools.olevba import VBA_Parser, VBA_Scanner
 from .macro_analyzer import analyze as analyze_macros
 from logger import get_logger
-from ioc_inspector_core.exceptions import ParserError
+from .exceptions import ParserError
 
 log = get_logger(__name__)
 
