@@ -39,3 +39,20 @@ def test_generate_json(tmp_path):
     data = json.loads(out.read_text())
     assert data["verdict"] == "malicious"
     assert data["score"] == 100
+    
+def test_generate_markdown_with_urls_ips(tmp_path):
+    src = tmp_path / "test.pdf"
+    result = {
+        "verdict": "suspicious",
+        "score": 45,
+        "summary": "URLs and IPs detected",
+        "urls": ["http://example.com"],
+        "ips": ["192.168.1.1"],
+        "url_rep": {"http://example.com": {"vendors": 2, "malicious": False}},
+        "ip_rep": {"192.168.1.1": {"abuse_confidence": 50, "total_reports": 3, "malicious": False}},
+    }
+    rg.generate_report(src, result, fmt="markdown")
+    out = tmp_path / "test_report.md"
+    text = out.read_text()
+    assert "http://example.com" in text
+    assert "192.168.1.1" in text
