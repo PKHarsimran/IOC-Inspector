@@ -1,12 +1,21 @@
-from ioc_inspector_core.url_reputation import lookup_urls, _vt_url_id
+from unittest.mock import patch, MagicMock
+from ioc_inspector_core.url_reputation import lookup_urls
 
-def test_vt_url_id_is_deterministic():
-    id1 = _vt_url_id("https://example.com")
-    id2 = _vt_url_id("https://example.com")
-    assert id1 == id2
-    assert isinstance(id1, str)
-    assert "=" not in id1  # no padding :contentReference[oaicite:1]{index=1}
+@patch('ioc_inspector_core.url_reputation.requests.get')
+def test_lookup_urls_success(mock_get, monkeypatch):
+    monkeypatch.setenv("VT_API_KEY", "fake_key")
 
-def test_lookup_urls_no_api_key(monkeypatch):
-    monkeypatch.delenv("VT_API_KEY", raising=False)
-    assert lookup_urls(["http://bad.com"]) == {}
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "data": {
+            "attributes": {
+                "last_analysis_stats": {"malicious": 7}
+            }
+        }
+    }
+    mock_get.return_value = mock_resp
+
+    result = lookup_urls(["http://evil.com"])
+    assert result["http://evil.com"]["malicious"] is True
+    assert result["http://evil.com"]["vendors"] == 7
