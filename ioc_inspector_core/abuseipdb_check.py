@@ -29,13 +29,12 @@ from settings import ABUSE_CONFIDENCE_CUTOFF
 
 log = get_logger(__name__)
 
-_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
 _ENDPOINT = "https://api.abuseipdb.com/api/v2/check"
 _MAX_AGE = 90
 _RATE_PAUSE = 1.2
 
 
-def _fetch_abuse_data(ip: str) -> Dict[str, Any]:
+def _fetch_abuse_data(ip: str, api_key: str) -> Dict[str, Any]:
     headers = {"Accept": "application/json", "Key": api_key}
     params: dict[str, Union[str, int]] = {
         "ipAddress": ip,
@@ -64,7 +63,7 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
 
     for ip in ips:
         try:
-            data = _fetch_abuse_data(ip)
+            data = _fetch_abuse_data(ip, api_key)
 
             if not data:
                 continue
