@@ -1,7 +1,9 @@
 """
 AbuseIPDB enrichment
 ────────────────────
-Look up every extracted IP address and return:
+Look up each extracted IP address and enrich with AbuseIPDB data.
+
+Returns a dictionary:
 
     {
         "1.2.3.4": {
@@ -27,51 +29,67 @@ from settings import ABUSE_CONFIDENCE_CUTOFF
 
 log = get_logger(__name__)
 
-_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
 _ENDPOINT = "https://api.abuseipdb.com/api/v2/check"
-_HEADERS = {"Accept": "application/json", "Key": _API_KEY or ""}
-_MAX_AGE = 90          # days
-_RATE_PAUSE = 1.2      # seconds between requests
+_MAX_AGE = 90
+_RATE_PAUSE = 1.2
+
+
+def _fetch_abuse_data(ip: str, api_key: str) -> Dict[str, Any]:
+    headers = {"Accept": "application/json", "Key": api_key}
+    params: dict[str, Union[str, int]] = {
+        "ipAddress": ip,
+        "maxAgeInDays": _MAX_AGE,
+    }
+
+    response = requests.get(_ENDPOINT, headers=headers, params=params, timeout=10)
+
+    if response.status_code != 200:
+        log.warning("AbuseIPDB %s -> HTTP %s", ip, response.status_code)
+        return {}
+
+    return response.json().get("data", {})
 
 
 def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
     """
-    Enrich each IP with AbuseIPDB reputation data.
+    Look up and enrich IP addresses using AbuseIPDB.
     """
-    if not _API_KEY:
-        log.debug("No ABUSEIPDB_API_KEY; skipping IP enrichment")
+    api_key = os.getenv("ABUSEIPDB_API_KEY")
+    if not api_key:
+        log.debug("No ABUSEIPDB_API_KEY provided; skipping IP enrichment.")
         return {}
 
-    out: Dict[str, Dict[str, Any]] = {}
+    enriched_data: Dict[str, Dict[str, Any]] = {}
+
     for ip in ips:
-        params: Dict[str, Union[str, int]] = {   # <-- explicit value types
-            "ipAddress": ip,
-            "maxAgeInDays": _MAX_AGE,
-        }
         try:
-            r = requests.get(_ENDPOINT, headers=_HEADERS, params=params, timeout=10)
-            if r.status_code != 200:
-                log.warning("AbuseIPDB %s -> HTTP %s", ip, r.status_code)
+            data = _fetch_abuse_data(ip, api_key)
+
+            if not data:
                 continue
-            data = r.json().get("data", {})
-        except Exception as exc:  # pragma: no cover
-            log.exception("AbuseIPDB look-up failed for %s: %s", ip, exc)
-            continue
 
-        conf = int(data.get("abuseConfidenceScore", 0))
-        out[ip] = {
-            "abuse_confidence": conf,
-            "total_reports": data.get("totalReports", 0),
-            "categories": data.get("usageType") or "",
-            "malicious": conf >= ABUSE_CONFIDENCE_CUTOFF,
-        }
+            confidence = int(data.get("abuseConfidenceScore", 0))
+            enriched_data[ip] = {
+                "abuse_confidence": confidence,
+                "total_reports": data.get("totalReports", 0),
+                "categories": data.get("usageType", ""),
+                "malicious": confidence >= ABUSE_CONFIDENCE_CUTOFF,
+            }
 
-        log.debug(
-            "AbuseIPDB %s -> conf=%d, reports=%s",
-            ip,
-            conf,
-            data.get("totalReports"),
-        )
-        time.sleep(_RATE_PAUSE)  # stay within free-tier limits
+            log.debug(
+                "AbuseIPDB %s -> conf=%d, reports=%d",
+                ip,
+                confidence,
+                enriched_data[ip]["total_reports"],
+            )
 
-    return out
+        except requests.RequestException as exc:
+            log.exception("AbuseIPDB request failed for %s: %s", ip, exc)
+
+        except Exception as exc:
+            log.exception("Unexpected error during AbuseIPDB enrichment for %s: %s", ip, exc)
+
+        finally:
+            time.sleep(_RATE_PAUSE)
+
+    return enriched_data
