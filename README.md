@@ -174,17 +174,6 @@ flowchart TD
 - ✅ CLI smoke test validates API usage and report generation
 
 ---
-
-## ➡️ Pathway
-
-| Stage        | Still to do before the next stage |
-|--------------|-----------------------------------|
-| **pre-0.1**  | Completed |
-| **0.1**      | Dependency-pinned CLI with Markdown / JSON output and a passing test-suite - Completed |
-| **0.2**      | Optional CSV export · Docker image · extra threat-feed look-ups |
-| **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
-
----
 # 🛣️ Roadmap to v1.0.0
 
 This outlines the path for taking IOC Inspector from a solid prototype (v0.1.0) to a polished, production-ready v1.0.0 release.
