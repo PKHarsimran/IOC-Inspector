@@ -1,5 +1,5 @@
 # IOC Inspector 🕵️‍♂️
-[![CI](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml)  
+[![CI](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml/badge.svg)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/ci.yml)
 [![Lint & Type-check](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/PKHarsimran/IOC-Inspector/actions/workflows/lint.yml)  
 [![Codecov](https://codecov.io/gh/PKHarsimran/IOC-Inspector/branch/main/graph/badge.svg?token=F7IJ44D5AC)](https://codecov.io/gh/PKHarsimran/IOC-Inspector)
 [![License: MIT](https://img.shields.io/github/license/PKHarsimran/IOC-Inspector.svg)](LICENSE)
