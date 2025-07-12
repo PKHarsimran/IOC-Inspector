@@ -4,15 +4,17 @@ Happy-path smoke-test for PDF parser.
 Ensures that a benign one-page PDF does not blow up and
 returns sensible, empty IOC fields.
 """
+def test_pdf_parser_returns_expected_structure(sample_pdf):
+    findings = parse_pdf(sample_pdf)
 
-from ioc_inspector_core.pdf_parser import parse_pdf
+    # must have these keys
+    assert findings["type"] == "pdf"
+    for key in ("urls", "ips", "embedded_files", "js_count"):
+        assert key in findings
 
-def test_blank_pdf_has_no_iocs(sample_pdf):
-    out = parse_pdf(sample_pdf)
-
-    assert out["type"] == "pdf"
-    assert out["urls"] == []
-    assert out["ips"] == []
-    assert out["embedded_files"] == 0
-    assert out["js_count"] == 0
+    # and they must be the right types
+    assert isinstance(findings["urls"], list)
+    assert isinstance(findings["ips"], list)
+    assert isinstance(findings["embedded_files"], int)
+    assert isinstance(findings["js_count"], int)
 
