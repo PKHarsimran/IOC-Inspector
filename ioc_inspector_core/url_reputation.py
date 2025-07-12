@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 """
 VirusTotal URL reputation
-─────────────────────────
+───────────────────────────
 Takes a list of URLs -> returns:
 
     {
@@ -16,7 +15,7 @@ import base64
 import hashlib
 import os
 import time
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import requests
 
@@ -25,12 +24,8 @@ from settings import VT_THRESHOLD
 
 log = get_logger(__name__)
 
-# --------------------------------------------------------------------------- #
-# API config
-# --------------------------------------------------------------------------- #
-_VT_KEY = os.getenv("VT_API_KEY")
 _ENDPOINT_SINGLE = "https://www.virustotal.com/api/v3/urls"
-_RATE_PAUSE = 15                     # seconds (public key = 4 req/min)
+_RATE_PAUSE = 15  # seconds (public key = 4 req/min)
 
 
 # --------------------------------------------------------------------------- #
@@ -47,7 +42,7 @@ def _vt_url_id(url: str) -> str:
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, int | bool]]:
+def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, Union[int, bool]]]:
     """
     Perform VT look-ups; skip if no API key.
 
@@ -56,11 +51,13 @@ def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, int | bool]]:
     Dict[str, Dict]
         {url: {"vendors": int, "malicious": bool}}
     """
-    out: Dict[str, Dict[str, int | bool]] = {}
-    if not _VT_KEY or not urls:
-        return out
+    api_key = os.getenv("VT_API_KEY")
+    if not api_key or not urls:
+        log.debug("No VT_API_KEY or URLs provided; skipping VT lookups.")
+        return {}
 
-    headers = {"x-apikey": _VT_KEY}
+    out: Dict[str, Dict[str, Union[int, bool]]] = {}
+    headers = {"x-apikey": api_key}
 
     for url in urls:
         url_id = _vt_url_id(url)
@@ -80,7 +77,7 @@ def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, int | bool]]:
 
             time.sleep(_RATE_PAUSE)  # stay within free-tier quota
 
-        except Exception as exc:           # pragma: no cover
+        except Exception as exc:  # pragma: no cover
             log.exception("VT lookup error for %s: %s", url, exc)
 
     return out
