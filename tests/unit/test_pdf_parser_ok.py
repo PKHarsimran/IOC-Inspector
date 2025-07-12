@@ -4,7 +4,6 @@ Happy-path smoke-test for PDF parser.
 Ensures that a benign one-page PDF does not blow up and
 returns sensible, empty IOC fields.
 """
-import pytest
 from ioc_inspector_core.pdf_parser import parse_pdf
 
 def test_pdf_parser_returns_expected_structure(sample_pdf):
