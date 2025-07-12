@@ -4,6 +4,8 @@
 [![Codecov](https://codecov.io/gh/PKHarsimran/IOC-Inspector/branch/main/graph/badge.svg?token=F7IJ44D5AC)](https://codecov.io/gh/PKHarsimran/IOC-Inspector)
 [![License: MIT](https://img.shields.io/github/license/PKHarsimran/IOC-Inspector.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.10%20|%203.11-blue)
+[![GitHub release](https://img.shields.io/github/v/release/PKHarsimran/IOC-Inspector)](https://github.com/PKHarsimran/IOC-Inspector/releases)
+
 
 
 
