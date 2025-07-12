@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from ioc_inspector_core.url_reputation import lookup_urls
+from ioc_inspector_core.url_reputation import lookup_urls, _vt_url_id
 
 @patch('ioc_inspector_core.url_reputation.requests.get')
 def test_lookup_urls_success(mock_get, monkeypatch):
