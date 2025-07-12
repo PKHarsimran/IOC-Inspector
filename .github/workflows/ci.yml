@@ -22,46 +22,40 @@ jobs:
 
     steps:
     # ── 1. Checkout repo ──────────────────────────────────────────────
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     # ── 2. Set up the requested Python version ────────────────────────
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
         cache: "pip"
 
-    # ── 3. Install runtime + dev dependencies ────────────────────────
+    # ── 3. Install runtime + dev dependencies ─────────────────────────
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt -r dev-requirements.txt
-        # Install IOC-Inspector in editable mode
-        pip install -e .
+        pip install -r requirements.txt
+        pip install -r dev-requirements.txt          # pytest / pytest-cov / ruff
+        pip install -e .                             # editable install
 
-    # ── 4. Run unit tests with coverage ───────────────────────────────
+    # ── 4. Run unit tests *with* built-in 80 % gate ────────────────────
+    #     pytest.ini already contains:
+    #       addopts = -ra --cov=ioc_inspector_core --cov-report=xml \
+    #                 --cov-report=term-missing --cov-fail-under=80
     - name: Run pytest
-      run: |
-        pytest --cov=ioc_inspector_core \
-               --cov-report=xml \
-               --cov-report=term
+      run: pytest
 
-    # ── 5. Enforce minimum coverage (80 %)  ───────────────────────────
-    - name: Enforce 80 % coverage
-      run: |
-        python - <<'PY'
-        import sys, xml.etree.ElementTree as ET, pathlib
-        pct = float(ET.parse("coverage.xml").getroot().attrib["line-rate"]) * 100
-        print(f"Line coverage: {pct:.1f}%")
-        sys.exit(0 if pct >= 80 else 1)
-        PY
+    # ── 5. (optional) Lint with Ruff ───────────────────────────────────
+    - name: Ruff lint
+      run: ruff check .
 
-    # ── 6. End-to-end CLI smoke test ─────────────────────────────────
+    # ── 6. End-to-end CLI smoke test ──────────────────────────────────
+    #     Runs *after* the unit tests so the request-stubbing fixture
+    #     doesn’t interfere. Uses real API keys from repo secrets.
     - name: End-to-end CLI test
       env:
         VT_API_KEY: ${{ secrets.VT_API_KEY }}
         ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
       run: |
         python main.py --file examples/test.pdf --report --quiet
-        test -f reports/test_report.md  # verify report created
+        test -f reports/test_report.md
