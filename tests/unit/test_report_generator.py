@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 import pytest
 
 import ioc_inspector_core.report_generator as rg
