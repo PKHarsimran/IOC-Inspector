@@ -8,7 +8,7 @@ then produces a final risk score & verdict.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 from logger import get_logger
 from .pdf_parser import parse_pdf

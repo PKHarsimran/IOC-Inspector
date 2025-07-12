@@ -13,6 +13,7 @@ jobs:
   build-test:
     name: ${{ matrix.os }} • Py${{ matrix.python }}
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -21,33 +22,40 @@ jobs:
 
     steps:
     # ── 1. Checkout repo ──────────────────────────────────────────────
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     # ── 2. Set up the requested Python version ────────────────────────
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
         cache: "pip"
 
-    # ── 3. Install project + test dependencies ────────────────────────
+    # ── 3. Install runtime + dev dependencies ─────────────────────────
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest click          # extras only needed in CI
-        pip install -e .
+        pip install -r dev-requirements.txt          # pytest / pytest-cov / ruff
+        pip install -e .                             # editable install
 
-    # ── 4. Run unit tests ─────────────────────────────────────────────
+    # ── 4. Run unit tests *with* built-in 80 % gate ────────────────────
+    #     pytest.ini already contains:
+    #       addopts = -ra --cov=ioc_inspector_core --cov-report=xml \
+    #                 --cov-report=term-missing --cov-fail-under=80
     - name: Run pytest
-      run: pytest -q
+      run: pytest
 
-    # ── 5. End-to-end CLI smoke test ─────────────────────────────────
+    # ── 5. (optional) Lint with Ruff ───────────────────────────────────
+    - name: Ruff lint
+      run: ruff check .
+
+    # ── 6. End-to-end CLI smoke test ──────────────────────────────────
+    #     Runs *after* the unit tests so the request-stubbing fixture
+    #     doesn’t interfere. Uses real API keys from repo secrets.
     - name: End-to-end CLI test
       env:
         VT_API_KEY: ${{ secrets.VT_API_KEY }}
         ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
       run: |
         python main.py --file examples/test.pdf --report --quiet
-        test -f reports/test_report.md   # ensure report file was created
+        test -f reports/test_report.md

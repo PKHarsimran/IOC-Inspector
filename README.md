@@ -183,7 +183,26 @@ flowchart TD
 
 | Stage        | Still to do before the next stage |
 |--------------|-----------------------------------|
-| **pre-0.1** *(current)* | • Pin library versions in `requirements.txt`<br>• Add unit tests for PDF & macro branches<br>• Tighten error handling / logging<br>• Ensure CI passes on Linux + Windows<br>• Final README polish |
+| **pre-0.1** *(current)* | - [ ] Pin library versions in `requirements.txt`<br>- [ ] Add unit tests for PDF & macro branches<br>- [ ] Tighten error handling / logging<br>- [ ] Ensure CI passes on **Linux + Windows**<br>- [ ] Final README polish |
 | **0.1**      | Dependency-pinned CLI with Markdown / JSON output and a passing test-suite |
 | **0.2**      | Optional CSV export · Docker image · extra threat-feed look-ups |
 | **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
+
+
+### 🏁 Detailed *pre-0.1* Checklist  <sup>(mirrors the task-list in the roadmap)</sup>
+
+| Task | Why it matters | How we’ll achieve it | Done ? |
+|------|----------------|----------------------|:------:|
+| **Pin library versions** | Reproducible builds – no “works-on-my-machine.” | Freeze every runtime dep in `requirements.txt` with exact versions. Add install step to CI. | Completed |
+| **Add unit tests (PDF & macro)** | Catch regressions when parsers change. | Use **pytest**; fixtures: benign PDF & malicious DOCM. Aim for ≥ 80 % coverage. | ⬜ |
+| **Tighten error handling / logging** | Fail *loudly* and informatively. | Wrap parser entry-points in `try/except`, raise `ParserError`, add ERROR log + test that checks it. | ⬜ |
+| **Cross-OS CI (Linux + Windows)** | Users run both. | Matrix in `.github/workflows/ci.yml`; run tests & collect coverage on both OSes. | ⬜ |
+| **Final README polish** | First impression counts. | Add coverage badge, verify quick-start on Win & Linux, remove stale TODOs. | ⬜ |
+
+### 🚀 Post-0.1 Milestones
+
+| Version | Focus | Key deliverables |
+|---------|-------|------------------|
+| **0.2** | Distribution & scale | • `--csv` export<br>• Alpine-based Docker image<br>• Extra enrichment feed (e.g., URLScan) |
+| **0.3** | UX & integrations | • `--quiet` JSON-only mode<br>• Rich CLI progress (opt-in)<br>• Splunk TA skeleton |
+| **1.0** | Stability & docs | • Async reputation look-ups for speed<br>• Full Sphinx docs site<br>• Semantic-versioned config<br>• Signed release assets |

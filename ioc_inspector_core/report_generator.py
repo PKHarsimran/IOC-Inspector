@@ -66,7 +66,7 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
 
     # ── Markdown (human-readable) ──────────────────────────────────────────
     lines: List[str] = []
-    lines.append(f"# IOC Inspector Report – {path.name}\n")
+    lines.append(f"# IOC Inspector Report - {path.name}\n")
     lines.append(
         f"**Verdict:** **{result['verdict'].upper()}**  \n"
         f"**Score:** {result['score']}\n"
