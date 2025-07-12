@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Dict, List, Any
+from typing import Any, Dict, List, Union
 
 import requests
 
@@ -27,32 +27,16 @@ from settings import ABUSE_CONFIDENCE_CUTOFF
 
 log = get_logger(__name__)
 
-# --------------------------------------------------------------------------- #
-# API config
-# --------------------------------------------------------------------------- #
-_API_KEY   = os.getenv("ABUSEIPDB_API_KEY")
-_ENDPOINT  = "https://api.abuseipdb.com/api/v2/check"
-_HEADERS   = {"Accept": "application/json", "Key": _API_KEY or ""}
-_MAX_AGE   = 90         # days of report history to consider
-_RATE_PAUSE = 1.2       # seconds between requests (public-key friendly)
+_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
+_ENDPOINT = "https://api.abuseipdb.com/api/v2/check"
+_HEADERS = {"Accept": "application/json", "Key": _API_KEY or ""}
+_MAX_AGE = 90          # days
+_RATE_PAUSE = 1.2      # seconds between requests
 
 
-# --------------------------------------------------------------------------- #
-# Public helper
-# --------------------------------------------------------------------------- #
 def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
     """
-    Enrich *ips* with AbuseIPDB data.
-
-    Parameters
-    ----------
-    ips : List[str]
-        List of IPv4/IPv6 strings.
-
-    Returns
-    -------
-    Dict[str, Dict]
-        Per-IP reputation details.  Empty dict if API key is missing.
+    Enrich each IP with AbuseIPDB reputation data.
     """
     if not _API_KEY:
         log.debug("No ABUSEIPDB_API_KEY; skipping IP enrichment")
@@ -60,11 +44,12 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
 
     out: Dict[str, Dict[str, Any]] = {}
     for ip in ips:
-        params = {"ipAddress": ip, "maxAgeInDays": _MAX_AGE}
+        params: Dict[str, Union[str, int]] = {   # <-- explicit value types
+            "ipAddress": ip,
+            "maxAgeInDays": _MAX_AGE,
+        }
         try:
-            r = requests.get(
-                _ENDPOINT, headers=_HEADERS, params=params, timeout=10
-            )
+            r = requests.get(_ENDPOINT, headers=_HEADERS, params=params, timeout=10)
             if r.status_code != 200:
                 log.warning("AbuseIPDB %s -> HTTP %s", ip, r.status_code)
                 continue
@@ -76,12 +61,17 @@ def lookup_ips(ips: List[str]) -> Dict[str, Dict[str, Any]]:
         conf = int(data.get("abuseConfidenceScore", 0))
         out[ip] = {
             "abuse_confidence": conf,
-            "total_reports":    data.get("totalReports", 0),
-            "categories":       data.get("usageType") or "",
-            "malicious":        conf >= ABUSE_CONFIDENCE_CUTOFF,
+            "total_reports": data.get("totalReports", 0),
+            "categories": data.get("usageType") or "",
+            "malicious": conf >= ABUSE_CONFIDENCE_CUTOFF,
         }
 
-        log.debug("AbuseIPDB %s -> conf=%d, reports=%s", ip, conf, data.get("totalReports"))
-        time.sleep(_RATE_PAUSE)  # stay under free-tier limit
+        log.debug(
+            "AbuseIPDB %s -> conf=%d, reports=%s",
+            ip,
+            conf,
+            data.get("totalReports"),
+        )
+        time.sleep(_RATE_PAUSE)  # stay within free-tier limits
 
     return out
