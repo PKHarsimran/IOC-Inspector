@@ -16,7 +16,9 @@ def test_lookup_ips_success(mock_get, monkeypatch):
     }
     mock_get.return_value = mock_resp
 
-    result = lookup_ips(["8.8.8.8"])
-    assert "8.8.8.8" in result  # Explicit check
-    assert result["8.8.8.8"]["abuse_confidence"] == 80
-    assert result["8.8.8.8"]["malicious"] is True
+result = lookup_ips(["8.8.8.8"])
+assert "8.8.8.8" in result  # Explicit check
+assert result["8.8.8.8"]["abuse_confidence"] == 80
+assert result["8.8.8.8"]["total_reports"] == 50
+assert result["8.8.8.8"]["malicious"] is True
+
