@@ -199,7 +199,7 @@ flowchart TD
 |------|----------------|----------------------|:------:|
 | **Pin library versions** | Reproducible builds – no “works-on-my-machine.” | Freeze every runtime dep in `requirements.txt` with exact versions. Add install step to CI. | Completed |
 | **Add unit tests (PDF & macro)** | Catch regressions when parsers change. | Use **pytest**; fixtures: benign PDF & malicious DOCM. Aim for ≥ 80 % coverage. | Completed |
-| **Tighten error handling / logging** | Fail *loudly* and informatively. | Wrap parser entry-points in `try/except`, raise `ParserError`, add ERROR log + test that checks it. | ⬜ |
+| **Tighten error handling / logging** | Fail *loudly* and informatively. | Wrap parser entry-points in `try/except`, raise `ParserError`, add ERROR log + test that checks it. | Completed |
 | **Cross-OS CI (Linux + Windows)** | Users run both. | Matrix in `.github/workflows/ci.yml`; run tests & collect coverage on both OSes. | ⬜ |
 | **Final README polish** | First impression counts. | Add coverage badge, verify quick-start on Win & Linux, remove stale TODOs. | ⬜ |
 
