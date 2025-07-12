@@ -28,7 +28,7 @@ def test_generate_markdown(tmp_path):
     rg.generate_report(src, result, fmt="markdown")
     out = tmp_path / "foo_report.md"
     text = out.read_text()
-    assert "# IOC Inspector Report – foo.pdf" in text
+    assert "# IOC Inspector Report - foo.pdf" in text
     assert "**Verdict:** **BENIGN**" in text
 
 def test_generate_json(tmp_path):
