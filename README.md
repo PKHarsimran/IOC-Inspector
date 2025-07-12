@@ -185,8 +185,83 @@ flowchart TD
 | **1.0**      | Performance tuning · full docs · stable config & semantic versioning |
 
 ---
+# 🛣️ Roadmap to v1.0.0
 
-## 👋 Contributing
-Pull requests are welcome! For ideas, check the [issues](https://github.com/PKHarsimran/IOC-Inspector/issues).
+This outlines the path for taking IOC Inspector from a solid prototype (v0.1.0) to a polished, production-ready v1.0.0 release.
+
+---
+
+## ✅ Phase 1: Foundation (v0.1.0 – Done)
+- [x] Static IOC extraction: PDF, DOCX, XLSX, RTF
+- [x] Threat enrichment: VirusTotal + AbuseIPDB
+- [x] Heuristic-based scoring engine
+- [x] Markdown + JSON reporting
+- [x] Command-line interface with flags (`--report`, `--quiet`, etc.)
+- [x] Cross-platform CI (Linux + Windows)
+- [x] 80%+ test coverage with CLI smoke tests
+- [x] Final README polish and first release tag
+
+---
+
+## 🚧 Phase 2: Stability & Feedback (`v0.2.x`)
+Focus: Hardening the product & improving feedback loop
+
+### Technical Improvements
+- [ ] JSON schema validation for report output
+- [ ] Improve error messaging with file context (e.g., filetype, parser used)
+- [ ] Separate reporting logic from CLI to enable more formats
+
+### Developer Experience
+- [ ] Add `make test`, `make lint`, `make run` shortcuts
+- [ ] Add GitHub Discussions or feedback template
+- [ ] Incorporate feedback from test users
+
+---
+
+## ✨ Phase 3: Export & Integrations (`v0.3.x`)
+Focus: SIEM-friendliness & analyst use
+
+- [ ] CSV export for Splunk or Excel
+- [ ] JSONL support for batch pipelines
+- [ ] HTML export with embedded styles
+- [ ] Normalize field naming for ingestion (e.g. `ioc.type`, `ioc.source`)
+- [ ] (Optional) Tag known MITRE ATT&CK techniques from enriched IOCs
+
+---
+
+## 🚀 Phase 4: Productionization (`v0.9.x`)
+Focus: Distribution & packaging polish
+
+- [ ] Publish to PyPI for `pipx` install
+- [ ] Provide Docker image with CLI entrypoint
+- [ ] Build Windows binary via PyInstaller
+- [ ] Automate changelogs & releases via GitHub Actions
+- [ ] Use SemVer auto-tagging (`release-please`)
+
+---
+
+## 🏁 v1.0.0 Criteria
+IOC Inspector will be tagged v1.0.0 when:
+
+- [ ] All supported formats parse reliably with test coverage
+- [ ] JSON / Markdown / CSV output is schema-stable
+- [ ] Test coverage is >90%
+- [ ] CLI is frictionless and documented
+- [ ] Docker + PyPI builds work out-of-box
+- [ ] Users validate usefulness via feedback
+
+---
+
+## 🧩 Post-1.0 Ideas
+Optional features to consider post-v1.0:
+
+- [ ] Ntfy/webhook notifications for batch runs
+- [ ] Web UI using Streamlit or Flask
+- [ ] Threat feed exporter (e.g. to MISP or CSV dump)
+- [ ] Language support for French / Spanish SOC teams
+
+---
+
+💬 Questions? Feedback? File an [Issue](https://github.com/PKHarsimran/IOC-Inspector/issues) or start a discussion.
 
 ---
