@@ -39,19 +39,25 @@ jobs:
         pip install -e .                             # editable install
 
     # ── 4. Run unit tests *with* built-in 80 % gate ────────────────────
-    #     pytest.ini already contains:
-    #       addopts = -ra --cov=ioc_inspector_core --cov-report=xml \
-    #                 --cov-report=term-missing --cov-fail-under=80
     - name: Run pytest
-      run: pytest
+      run: pytest --cov=ioc_inspector_core --cov-report=xml --cov-report=term-missing
 
-    # ── 5. (optional) Lint with Ruff ───────────────────────────────────
+    # ── 5. Upload coverage to Codecov ────────────────────────────────
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: coverage.xml
+        flags: unittests
+        fail_ci_if_error: true
+      # if your repo is private, uncomment the next lines
+      # env:
+      #   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    # ── 6. (optional) Lint with Ruff ───────────────────────────────────
     - name: Ruff lint
       run: ruff check .
 
-    # ── 6. End-to-end CLI smoke test ──────────────────────────────────
-    #     Runs *after* the unit tests so the request-stubbing fixture
-    #     doesn’t interfere. Uses real API keys from repo secrets.
+    # ── 7. End-to-end CLI smoke test ──────────────────────────────────
     - name: End-to-end CLI test
       env:
         VT_API_KEY: ${{ secrets.VT_API_KEY }}
@@ -59,3 +65,4 @@ jobs:
       run: |
         python main.py --file examples/test.pdf --report --quiet
         test -f reports/test_report.md
+
