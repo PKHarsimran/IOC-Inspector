@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-test:
-    name: ${{ matrix.os }} • Py${{ matrix.python }}
+    name: Test on ${{ matrix.os }} with Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -47,7 +47,7 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         files: coverage.xml
-        flags: unittests
+        flags: ${{ matrix.os }}-py${{ matrix.python }}
         fail_ci_if_error: true
       # if your repo is private, uncomment the next lines
       # env:
@@ -64,5 +64,9 @@ jobs:
         ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
       run: |
         python main.py --file examples/test.pdf --report --quiet
-        test -f reports/test_report.md
+        if [ ! -f reports/test_report.md ]; then
+          echo "❌ CLI did not generate the report as expected"
+          exit 1
+        fi
+
 
