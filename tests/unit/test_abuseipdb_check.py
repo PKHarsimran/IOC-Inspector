@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch, MagicMock
 import ioc_inspector_core.abuseipdb_check as abuseipdb_check
 
