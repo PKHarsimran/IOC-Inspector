@@ -56,3 +56,30 @@ def test_generate_markdown_with_urls_ips(tmp_path):
     text = out.read_text()
     assert "http://example.com" in text
     assert "192.168.1.1" in text
+
+
+def test_generate_csv(tmp_path):
+    src = make_dummy(tmp_path)
+    result = {"verdict": "benign", "score": 1}
+    rg.generate_report(src, result, fmt="csv")
+    out = tmp_path / "foo_report.csv"
+    text = out.read_text()
+    assert "verdict" in text
+
+
+def test_generate_jsonl(tmp_path):
+    src = make_dummy(tmp_path)
+    result = {"verdict": "benign", "score": 2}
+    rg.generate_report(src, result, fmt="jsonl")
+    out = tmp_path / "foo_report.jsonl"
+    data = json.loads(out.read_text())
+    assert data["score"] == 2
+
+
+def test_generate_html(tmp_path):
+    src = make_dummy(tmp_path)
+    result = {"verdict": "benign", "score": 3}
+    rg.generate_report(src, result, fmt="html")
+    out = tmp_path / "foo_report.html"
+    text = out.read_text()
+    assert "<html>" in text

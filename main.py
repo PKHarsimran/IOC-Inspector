@@ -41,10 +41,12 @@ except (PackageNotFoundError, ModuleNotFoundError):
 )
 @click.version_option(PKG_VER, prog_name="IOC Inspector")
 @click.option(
-    "-f", "--file",
-    "file_",
+    "-f",
+    "--file",
+    "files",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Scan a single document",
+    multiple=True,
+    help="Scan a document (can be used multiple times)",
 )
 @click.option(
     "-d", "--dir",
@@ -74,7 +76,7 @@ except (PackageNotFoundError, ModuleNotFoundError):
     help="Bump log level to DEBUG for troubleshooting",
 )
 def cli(
-    file_: Path | None,
+    files: tuple[Path, ...],
     dir_: Path | None,
     report: bool,
     json_: bool,
@@ -84,7 +86,7 @@ def cli(
     """
     Static IOC extractor + reputation scorer for PDFs & Office documents.
     """
-    if not (file_ or dir_):
+    if not (files or dir_):
         click.echo("Error: specify --file or --dir\n", err=True)
         click.echo(click.get_current_context().get_help(), err=True)
         sys.exit(2)
@@ -92,7 +94,11 @@ def cli(
     if debug:
         get_logger().setLevel("DEBUG")
 
-    targets: List[Path] = [file_] if file_ else [p for p in dir_.rglob("*") if p.is_file()]
+    if files:
+        targets: List[Path] = list(files)
+    else:
+        assert dir_ is not None
+        targets = [p for p in dir_.rglob("*") if p.is_file()]
 
     if not targets:
         log.error("No files found to scan.")

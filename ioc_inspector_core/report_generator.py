@@ -4,8 +4,9 @@ IOC Inspector – report writer
 ─────────────────────────────
 • Markdown (human-readable)
 • JSON    (machine-readable)
-
-CSV export can be added later if needed.
+• CSV     (spreadsheet-friendly)
+• JSONL   (one JSON object per line)
+• HTML    (basic formatting)
 """
 
 from __future__ import annotations
@@ -55,7 +56,14 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         'markdown' (default) or 'json'.
     """
     stem = path.stem
-    out_name = f"{stem}_report.{ 'md' if fmt == 'markdown' else 'json' }"
+    ext_map = {
+        "markdown": "md",
+        "json": "json",
+        "csv": "csv",
+        "jsonl": "jsonl",
+        "html": "html",
+    }
+    out_name = f"{stem}_report.{ext_map.get(fmt, fmt)}"
     out_path = REPORTS_DIR / out_name
 
     # ── JSON (machine-readable) ────────────────────────────────────────────
@@ -63,6 +71,23 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
         log.debug("Wrote JSON report → %s", out_path.relative_to(REPORTS_DIR.parent))
         return
+
+    if fmt == "jsonl":
+        out_path.write_text(json.dumps(result) + "\n", encoding="utf-8")
+        log.debug("Wrote JSONL report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
+    if fmt == "csv":
+        import csv
+
+        with out_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(["field", "value"])
+            for k, v in result.items():
+                writer.writerow([k, json.dumps(v) if isinstance(v, (dict, list)) else v])
+        log.debug("Wrote CSV report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
 
     # ── Markdown (human-readable) ──────────────────────────────────────────
     lines: List[str] = []
@@ -138,5 +163,14 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
 
         lines.append("")  # blank line for spacing
 
-    out_path.write_text("\n".join(lines), encoding="utf-8")
+    md_text = "\n".join(lines)
+
+    if fmt == "html":
+        escaped = md_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html_text = f"<html><body><pre>{escaped}</pre></body></html>"
+        out_path.write_text(html_text, encoding="utf-8")
+        log.debug("Wrote HTML report -> %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
+    out_path.write_text(md_text, encoding="utf-8")
     log.debug("Wrote Markdown report -> %s", out_path.relative_to(REPORTS_DIR.parent))
