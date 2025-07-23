@@ -4,8 +4,9 @@ IOC Inspector – report writer
 ─────────────────────────────
 • Markdown (human-readable)
 • JSON    (machine-readable)
-
-CSV export can be added later if needed.
+• CSV     (spreadsheet-friendly)
+• JSONL   (one JSON object per line)
+• HTML    (basic formatting)
 """
 
 from __future__ import annotations
@@ -13,6 +14,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Dict, List
+
+import jsonschema
 
 from logger import get_logger
 
@@ -23,6 +26,11 @@ log = get_logger(__name__)
 # --------------------------------------------------------------------------- #
 REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
 REPORTS_DIR.mkdir(exist_ok=True)
+
+# Load JSON schema for validation
+SCHEMA_PATH = Path(__file__).with_name("report_schema.json")
+with SCHEMA_PATH.open(encoding="utf-8") as fh:
+    REPORT_SCHEMA = json.load(fh)
 
 # --------------------------------------------------------------------------- #
 # Helpers
@@ -36,6 +44,11 @@ def _md_table(headers: List[str], rows: List[List[str]]) -> str:
     for row in rows:
         lines.append("| " + " | ".join(row) + " |")
     return "\n".join(lines)
+
+
+def _validate(data: Dict) -> None:
+    """Validate report dict against the JSON schema."""
+    jsonschema.validate(data, REPORT_SCHEMA)
 
 
 # --------------------------------------------------------------------------- #
@@ -55,7 +68,15 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         'markdown' (default) or 'json'.
     """
     stem = path.stem
-    out_name = f"{stem}_report.{ 'md' if fmt == 'markdown' else 'json' }"
+    _validate(result)
+    ext_map = {
+        "markdown": "md",
+        "json": "json",
+        "csv": "csv",
+        "jsonl": "jsonl",
+        "html": "html",
+    }
+    out_name = f"{stem}_report.{ext_map.get(fmt, fmt)}"
     out_path = REPORTS_DIR / out_name
 
     # ── JSON (machine-readable) ────────────────────────────────────────────
@@ -63,6 +84,23 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
         log.debug("Wrote JSON report → %s", out_path.relative_to(REPORTS_DIR.parent))
         return
+
+    if fmt == "jsonl":
+        out_path.write_text(json.dumps(result) + "\n", encoding="utf-8")
+        log.debug("Wrote JSONL report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
+    if fmt == "csv":
+        import csv
+
+        with out_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(["field", "value"])
+            for k, v in result.items():
+                writer.writerow([k, json.dumps(v) if isinstance(v, (dict, list)) else v])
+        log.debug("Wrote CSV report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
 
     # ── Markdown (human-readable) ──────────────────────────────────────────
     lines: List[str] = []
@@ -138,5 +176,14 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
 
         lines.append("")  # blank line for spacing
 
-    out_path.write_text("\n".join(lines), encoding="utf-8")
+    md_text = "\n".join(lines)
+
+    if fmt == "html":
+        escaped = md_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html_text = f"<html><body><pre>{escaped}</pre></body></html>"
+        out_path.write_text(html_text, encoding="utf-8")
+        log.debug("Wrote HTML report -> %s", out_path.relative_to(REPORTS_DIR.parent))
+        return
+
+    out_path.write_text(md_text, encoding="utf-8")
     log.debug("Wrote Markdown report -> %s", out_path.relative_to(REPORTS_DIR.parent))

@@ -15,6 +15,7 @@ import base64
 import hashlib
 import os
 import time
+from functools import lru_cache
 from typing import Dict, List, Union
 
 import requests
@@ -42,6 +43,12 @@ def _vt_url_id(url: str) -> str:
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
+@lru_cache(maxsize=128)
+def _fetch_vt_report(url_id: str, api_key: str) -> requests.Response:
+    headers = {"x-apikey": api_key}
+    return requests.get(f"{_ENDPOINT_SINGLE}/{url_id}", headers=headers, timeout=15)
+
+
 def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, Union[int, bool]]]:
     """
     Perform VT look-ups; skip if no API key.
@@ -57,12 +64,10 @@ def lookup_urls(urls: List[str]) -> Dict[str, Dict[str, Union[int, bool]]]:
         return {}
 
     out: Dict[str, Dict[str, Union[int, bool]]] = {}
-    headers = {"x-apikey": api_key}
-
     for url in urls:
         url_id = _vt_url_id(url)
         try:
-            r = requests.get(f"{_ENDPOINT_SINGLE}/{url_id}", headers=headers, timeout=15)
+            r = _fetch_vt_report(url_id, api_key)
             if r.status_code != 200:
                 log.debug("VT %s -> HTTP %s", url, r.status_code)
                 continue
