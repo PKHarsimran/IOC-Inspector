@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from typing import List
+from concurrent.futures import ThreadPoolExecutor
 
 import click
 
@@ -41,10 +42,12 @@ except (PackageNotFoundError, ModuleNotFoundError):
 )
 @click.version_option(PKG_VER, prog_name="IOC Inspector")
 @click.option(
-    "-f", "--file",
-    "file_",
+    "-f",
+    "--file",
+    "files",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Scan a single document",
+    multiple=True,
+    help="Scan a document (can be used multiple times)",
 )
 @click.option(
     "-d", "--dir",
@@ -69,22 +72,31 @@ except (PackageNotFoundError, ModuleNotFoundError):
     help="Suppress console summary (errors still print)",
 )
 @click.option(
+    "-t",
+    "--threads",
+    type=click.IntRange(1, 32),
+    default=1,
+    show_default=True,
+    help="Number of concurrent threads",
+)
+@click.option(
     "--debug",
     is_flag=True,
     help="Bump log level to DEBUG for troubleshooting",
 )
 def cli(
-    file_: Path | None,
+    files: tuple[Path, ...],
     dir_: Path | None,
     report: bool,
     json_: bool,
     quiet: bool,
+    threads: int,
     debug: bool,
 ) -> None:
     """
     Static IOC extractor + reputation scorer for PDFs & Office documents.
     """
-    if not (file_ or dir_):
+    if not (files or dir_):
         click.echo("Error: specify --file or --dir\n", err=True)
         click.echo(click.get_current_context().get_help(), err=True)
         sys.exit(2)
@@ -92,7 +104,11 @@ def cli(
     if debug:
         get_logger().setLevel("DEBUG")
 
-    targets: List[Path] = [file_] if file_ else [p for p in dir_.rglob("*") if p.is_file()]
+    if files:
+        targets: List[Path] = list(files)
+    else:
+        assert dir_ is not None
+        targets = [p for p in dir_.rglob("*") if p.is_file()]
 
     if not targets:
         log.error("No files found to scan.")
@@ -101,23 +117,20 @@ def cli(
     want_md = report or "markdown" in REPORT_FORMATS
     want_json = json_ or "json" in REPORT_FORMATS
 
-    exit_bad = False
 
-    for doc in targets:
+    def process(doc: Path) -> bool:
         try:
             outcome = analyze(doc)
         except ParserError as exc:
             log.error("ParserError analyzing %s: %s", doc.name, exc)
             if not quiet:
                 click.echo(f"[PARSER ERROR] {doc}: {exc}", err=True)
-            exit_bad = True
-            continue
+            return True
         except Exception as exc:
             log.exception("Unexpected error analyzing %s", doc.name)
             if not quiet:
                 click.echo(f"[UNEXPECTED ERROR] {doc}: {exc}", err=True)
-            exit_bad = True
-            continue
+            return True
 
         if not quiet:
             click.echo(f"{doc}: score={outcome['score']}  verdict={outcome['verdict']}")
@@ -133,9 +146,17 @@ def cli(
             outcome["score"],
             outcome["verdict"],
         )
+        return outcome["verdict"] == "malicious"
 
-        if outcome["verdict"] == "malicious":
-            exit_bad = True
+    if threads > 1 and len(targets) > 1:
+        with ThreadPoolExecutor(max_workers=threads) as pool:
+            results = list(pool.map(process, targets))
+        exit_bad = any(results)
+    else:
+        exit_bad = False
+        for doc in targets:
+            if process(doc):
+                exit_bad = True
 
     sys.exit(1 if exit_bad else 0)
 
