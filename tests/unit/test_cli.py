@@ -22,7 +22,6 @@ def test_cli_multiple_files(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert calls == [f1, f2]
 
-
 def test_cli_threads(monkeypatch, tmp_path):
     calls = []
 

@@ -84,8 +84,7 @@ def test_generate_html(tmp_path):
     out = tmp_path / "foo_report.html"
     text = out.read_text()
     assert "<html>" in text
-
-
+    
 def test_schema_validation(tmp_path):
     src = make_dummy(tmp_path)
     # Missing required 'score'

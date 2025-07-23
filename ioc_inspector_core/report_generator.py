@@ -69,6 +69,7 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
     """
     stem = path.stem
     _validate(result)
+    
     ext_map = {
         "markdown": "md",
         "json": "json",
