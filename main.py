@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from typing import List
+from concurrent.futures import ThreadPoolExecutor
 
 import click
 
@@ -71,6 +72,14 @@ except (PackageNotFoundError, ModuleNotFoundError):
     help="Suppress console summary (errors still print)",
 )
 @click.option(
+    "-t",
+    "--threads",
+    type=click.IntRange(1, 32),
+    default=1,
+    show_default=True,
+    help="Number of concurrent threads",
+)
+@click.option(
     "--debug",
     is_flag=True,
     help="Bump log level to DEBUG for troubleshooting",
@@ -81,6 +90,7 @@ def cli(
     report: bool,
     json_: bool,
     quiet: bool,
+    threads: int,
     debug: bool,
 ) -> None:
     """
@@ -107,23 +117,20 @@ def cli(
     want_md = report or "markdown" in REPORT_FORMATS
     want_json = json_ or "json" in REPORT_FORMATS
 
-    exit_bad = False
 
-    for doc in targets:
+    def process(doc: Path) -> bool:
         try:
             outcome = analyze(doc)
         except ParserError as exc:
             log.error("ParserError analyzing %s: %s", doc.name, exc)
             if not quiet:
                 click.echo(f"[PARSER ERROR] {doc}: {exc}", err=True)
-            exit_bad = True
-            continue
+            return True
         except Exception as exc:
             log.exception("Unexpected error analyzing %s", doc.name)
             if not quiet:
                 click.echo(f"[UNEXPECTED ERROR] {doc}: {exc}", err=True)
-            exit_bad = True
-            continue
+            return True
 
         if not quiet:
             click.echo(f"{doc}: score={outcome['score']}  verdict={outcome['verdict']}")
@@ -139,9 +146,17 @@ def cli(
             outcome["score"],
             outcome["verdict"],
         )
+        return outcome["verdict"] == "malicious"
 
-        if outcome["verdict"] == "malicious":
-            exit_bad = True
+    if threads > 1 and len(targets) > 1:
+        with ThreadPoolExecutor(max_workers=threads) as pool:
+            results = list(pool.map(process, targets))
+        exit_bad = any(results)
+    else:
+        exit_bad = False
+        for doc in targets:
+            if process(doc):
+                exit_bad = True
 
     sys.exit(1 if exit_bad else 0)
 

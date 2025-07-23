@@ -18,6 +18,7 @@
 - Dynamic API key loading for test reliability
 - Coverage-gated CI with **>80%** unit test coverage
 - Final README polish ✨
+- Concurrent directory scanning with `--threads`
 
 ---
 
@@ -42,8 +43,9 @@
 | **IOC Extraction**  | URLs • Domains • IPs • Base64 blobs • Hidden links                                                 |
 | **Threat Enrichment** | VirusTotal • AbuseIPDB                                                                      |
 | **Scoring Engine**  | Heuristic weights + rule modifiers (configurable)                                                  |
-| **Reporting**       | Markdown & JSON (CSV optional)                                                                     |
-| **Automation**      | Dir-recursive scan • Quiet / Verbose switches • GitHub Actions workflow                            |
+| **Reporting**       | Markdown, JSON, CSV, JSONL, HTML
+                                          |
+| **Automation**      | Dir-recursive scan • `--threads` for concurrency • Quiet/Verbose switches • GitHub Actions workflow |
 
 ---
 
@@ -125,7 +127,7 @@ ioc-inspector/
 | Category | Package | Why it’s needed |
 |----------|---------|-----------------|
 | Core     | `oletools`, `pdfminer.six`, `PyMuPDF`, `requests`, `python-dotenv`, `tldextract` | Parsing, enrichment, API config |
-| Reporting| *(builtin)* | Markdown/JSON rendering |
+| Reporting| *(builtin)* | Markdown/JSON/CSV/JSONL/HTML rendering |
 | Optional | `tabulate`, `rich`, `jinja2` | Pretty console output, HTML reports |
 
 ---
@@ -198,12 +200,12 @@ This outlines the path for taking IOC Inspector from a solid prototype (v0.1.0) 
 Focus: Hardening the product & improving feedback loop
 
 ### Technical Improvements
-- [ ] JSON schema validation for report output
+- [x] JSON schema validation for report output
 - [ ] Improve error messaging with file context (e.g., filetype, parser used)
 - [ ] Separate reporting logic from CLI to enable more formats
 
 ### Developer Experience
-- [ ] Add `make test`, `make lint`, `make run` shortcuts
+- [x] Add `make test`, `make lint`, `make run` shortcuts
 - [ ] Add GitHub Discussions or feedback template
 - [ ] Incorporate feedback from test users
 
@@ -212,9 +214,9 @@ Focus: Hardening the product & improving feedback loop
 ## ✨ Phase 3: Export & Integrations (`v0.3.x`)
 Focus: SIEM-friendliness & analyst use
 
-- [ ] CSV export for Splunk or Excel
-- [ ] JSONL support for batch pipelines
-- [ ] HTML export with embedded styles
+- [x] CSV export for Splunk or Excel
+- [x] JSONL support for batch pipelines
+- [x] HTML export with embedded styles
 - [ ] Normalize field naming for ingestion (e.g. `ioc.type`, `ioc.source`)
 - [ ] (Optional) Tag known MITRE ATT&CK techniques from enriched IOCs
 

@@ -15,6 +15,8 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
+import jsonschema
+
 from logger import get_logger
 
 log = get_logger(__name__)
@@ -24,6 +26,11 @@ log = get_logger(__name__)
 # --------------------------------------------------------------------------- #
 REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
 REPORTS_DIR.mkdir(exist_ok=True)
+
+# Load JSON schema for validation
+SCHEMA_PATH = Path(__file__).with_name("report_schema.json")
+with SCHEMA_PATH.open(encoding="utf-8") as fh:
+    REPORT_SCHEMA = json.load(fh)
 
 # --------------------------------------------------------------------------- #
 # Helpers
@@ -37,6 +44,11 @@ def _md_table(headers: List[str], rows: List[List[str]]) -> str:
     for row in rows:
         lines.append("| " + " | ".join(row) + " |")
     return "\n".join(lines)
+
+
+def _validate(data: Dict) -> None:
+    """Validate report dict against the JSON schema."""
+    jsonschema.validate(data, REPORT_SCHEMA)
 
 
 # --------------------------------------------------------------------------- #
@@ -56,6 +68,8 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         'markdown' (default) or 'json'.
     """
     stem = path.stem
+    _validate(result)
+    
     ext_map = {
         "markdown": "md",
         "json": "json",

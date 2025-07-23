@@ -1,5 +1,6 @@
 import json
 import pytest
+import jsonschema
 
 import ioc_inspector_core.report_generator as rg
 
@@ -83,3 +84,10 @@ def test_generate_html(tmp_path):
     out = tmp_path / "foo_report.html"
     text = out.read_text()
     assert "<html>" in text
+    
+def test_schema_validation(tmp_path):
+    src = make_dummy(tmp_path)
+    # Missing required 'score'
+    result = {"verdict": "benign"}
+    with pytest.raises(jsonschema.ValidationError):
+        rg.generate_report(src, result, fmt="json")
