@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import os
 import time
+from functools import lru_cache
 from typing import Any, Dict, List, Union
 
 import requests
@@ -34,6 +35,7 @@ _MAX_AGE = 90
 _RATE_PAUSE = 1.2
 
 
+@lru_cache(maxsize=128)
 def _fetch_abuse_data(ip: str, api_key: str) -> Dict[str, Any]:
     headers = {"Accept": "application/json", "Key": api_key}
     params: dict[str, Union[str, int]] = {
