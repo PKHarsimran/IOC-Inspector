@@ -6,7 +6,7 @@ PyMuPDF==1.24.3         # Fast PDF parser (embeds + JavaScript)
 
 # ── IOC extraction & enrichment ──────────────────────────────────────────
 requests==2.33.0        # HTTP calls for VT & AbuseIPDB
-python-dotenv==1.0.1    # Load API keys from .env
+python-dotenv==1.2.2    # Load API keys from .env
 tldextract==5.1.2       # Clean URL domain/TLD splitting
 
 # ── CLI / UX ─────────────────────────────────────────────────────────────
