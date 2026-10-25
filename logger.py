@@ -17,9 +17,9 @@ from logging.handlers import RotatingFileHandler
 # ─────────────────────────────────────────────────────────────────────────────
 # Paths & formatting
 # ─────────────────────────────────────────────────────────────────────────────
-LOG_DIR   = Path(__file__).with_name("logs")
+LOG_DIR   = Path(os.getenv("LOG_DIR", "logs")).resolve()
 LOG_FILE  = LOG_DIR / "ioc_inspector.log"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 _FMT = logging.Formatter(
     fmt="%(asctime)s  [%(levelname)s]  %(name)s: %(message)s",
@@ -28,6 +28,7 @@ _FMT = logging.Formatter(
 
 # Honour env var, default INFO
 _DEFAULT_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+_LOGGERS: dict[str, logging.Logger] = {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ def get_logger(name: str = "ioc_inspector") -> logging.Logger:
         Logging namespace—usually just `__name__`.
     """
     log = logging.getLogger(name)
+    _LOGGERS[name] = log
     if log.handlers:            # already initialised -> reuse
         return log
 
@@ -65,3 +67,17 @@ def get_logger(name: str = "ioc_inspector") -> logging.Logger:
     # Prevent double-logging if root configured elsewhere
     log.propagate = True
     return log
+
+
+def configure_logging(
+    *, quiet: bool = False, debug: bool = False, console_level: str | None = None,
+) -> None:
+    """Apply CLI verbosity to all project loggers and console handlers."""
+    level = "DEBUG" if debug else _DEFAULT_LEVEL
+    for log in _LOGGERS.values():
+        log.setLevel(level)
+        for handler in log.handlers:
+            if isinstance(handler, logging.StreamHandler) and not isinstance(
+                handler, logging.FileHandler
+            ):
+                handler.setLevel("ERROR" if quiet else console_level or level)

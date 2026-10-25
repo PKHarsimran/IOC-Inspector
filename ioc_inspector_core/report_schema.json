@@ -10,6 +10,33 @@
     "ips": {"type": "array", "items": {"type": "string"}},
     "url_rep": {"type": "object"},
     "ip_rep": {"type": "object"},
+    "enrichment": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status", "reason"],
+        "properties": {
+          "status": {"enum": ["success", "failed", "partial", "skipped", "not_found"]},
+          "reason": {"type": "string"},
+          "total": {"type": "integer", "minimum": 0},
+          "succeeded": {"type": "integer", "minimum": 0},
+          "failed": {"type": "integer", "minimum": 0},
+          "not_found": {"type": "integer", "minimum": 0},
+          "skipped": {"type": "integer", "minimum": 0},
+          "indicators": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["status", "reason"],
+              "properties": {
+                "status": {"enum": ["success", "failed", "skipped", "not_found"]},
+                "reason": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
     "macro": {"type": ["boolean", "null"]},
     "embedded_files": {"type": ["integer", "null"]},
     "js_count": {"type": ["integer", "null"]}

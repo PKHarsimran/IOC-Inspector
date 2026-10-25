@@ -17,6 +17,15 @@ def sample_docm():
 # ---------- stop every test from hitting the internet ----------
 @pytest.fixture(autouse=True)
 def stub_requests(monkeypatch):
+    from ioc_inspector_core import abuseipdb_check, url_reputation
+
+    # Keep tests independent of credentials, cached responses and real delays.
+    monkeypatch.delenv("VT_API_KEY", raising=False)
+    monkeypatch.delenv("ABUSEIPDB_API_KEY", raising=False)
+    for module in (abuseipdb_check, url_reputation):
+        monkeypatch.setattr(module, "_RATE_PAUSE", 0)
+    url_reputation._fetch_vt_report.cache_clear()
+    abuseipdb_check._fetch_abuse_data.cache_clear()
     class _Fake:
         status_code = 200
         def json(self): return {"data": {}}

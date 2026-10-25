@@ -91,3 +91,48 @@ def test_schema_validation(tmp_path):
     result = {"verdict": "benign"}
     with pytest.raises(jsonschema.ValidationError):
         rg.generate_report(src, result, fmt="json")
+
+
+def test_unknown_format_does_not_write_mislabelled_markdown(tmp_path):
+    with pytest.raises(ValueError, match="Unsupported report format"):
+        rg.generate_report(make_dummy(tmp_path), {"verdict": "benign", "score": 0}, fmt="yaml")
+    assert not list(tmp_path.glob("*_report.*"))
+
+
+def test_html_escapes_document_content(tmp_path):
+    rg.generate_report(
+        make_dummy(tmp_path),
+        {"verdict": "benign", "score": 0, "summary": "<script>alert(1)</script>"},
+        fmt="html",
+    )
+    text = (tmp_path / "foo_report.html").read_text()
+    assert "<script>" not in text
+    assert "&lt;script&gt;" in text
+
+
+@pytest.mark.parametrize("fmt", ["markdown", "html", "json", "csv", "jsonl"])
+def test_enrichment_skips_are_explicit_in_every_format(tmp_path, fmt):
+    from ioc_inspector_core.reputation_status import summarize
+    result = {
+        "verdict": "benign", "score": 0, "urls": ["https://example.com"], "ips": ["198.51.100.7"],
+        "enrichment": {
+            "virustotal": summarize({"https://example.com": {"status": "skipped", "reason": "offline"}}, "offline"),
+            "abuseipdb": summarize({"198.51.100.7": {"status": "skipped", "reason": "offline"}}, "offline"),
+        },
+    }
+    output = tmp_path / "custom"
+    rg.generate_report(make_dummy(tmp_path), result, fmt=fmt, output_dir=output)
+    text = next(output.iterdir()).read_text(encoding="utf-8")
+    assert "offline" in text
+    assert "skipped" in text
+    if fmt in ("markdown", "html"):
+        assert "not checked" in text
+        assert "Lookup status" in text
+
+
+def test_invalid_enrichment_status_is_rejected(tmp_path):
+    with pytest.raises(jsonschema.ValidationError):
+        rg.generate_report(make_dummy(tmp_path), {
+            "verdict": "benign", "score": 0,
+            "enrichment": {"virustotal": {"status": "pretend_clean", "reason": ""}},
+        }, fmt="json")

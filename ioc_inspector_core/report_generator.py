@@ -12,6 +12,7 @@ IOC Inspector – report writer
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Dict, List
 
@@ -24,8 +25,10 @@ log = get_logger(__name__)
 # --------------------------------------------------------------------------- #
 # Paths
 # --------------------------------------------------------------------------- #
-REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
-REPORTS_DIR.mkdir(exist_ok=True)
+REPORTS_DIR = Path(os.getenv("REPORTS_DIR", "reports")).resolve()
+REPORT_EXTENSIONS = {
+    "markdown": "md", "json": "json", "csv": "csv", "jsonl": "jsonl", "html": "html",
+}
 
 # Load JSON schema for validation
 SCHEMA_PATH = Path(__file__).with_name("report_schema.json")
@@ -51,10 +54,21 @@ def _validate(data: Dict) -> None:
     jsonschema.validate(data, REPORT_SCHEMA)
 
 
+def _lookup_status(result: dict, service: str, indicator: str, reputation: dict) -> str:
+    info = result.get("enrichment", {}).get(service, {}).get("indicators", {}).get(indicator, {})
+    if not info:
+        return "success" if reputation else "not checked"
+    reason = f" ({info['reason']})" if info.get("reason") else ""
+    return info["status"] + reason
+
+
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
+def generate_report(
+    path: Path, result: Dict, fmt: str = "markdown", *, output_stem: str | None = None,
+    output_dir: Path | None = None,
+) -> None:
     """
     Write a report file for *path*.
 
@@ -65,30 +79,31 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
     result : Dict
         Findings dict after heuristics scoring.
     fmt : str
-        'markdown' (default) or 'json'.
+        'markdown' (default), 'json', 'csv', 'jsonl', or 'html'.
+    output_stem : str | None
+        Optional collision-free basename supplied by the batch CLI.
+    output_dir : Path | None
+        Output directory for this invocation, without changing global defaults.
     """
-    stem = path.stem
+    if fmt not in REPORT_EXTENSIONS:
+        raise ValueError(f"Unsupported report format: {fmt}")
+    stem = output_stem or path.stem
     _validate(result)
     
-    ext_map = {
-        "markdown": "md",
-        "json": "json",
-        "csv": "csv",
-        "jsonl": "jsonl",
-        "html": "html",
-    }
-    out_name = f"{stem}_report.{ext_map.get(fmt, fmt)}"
-    out_path = REPORTS_DIR / out_name
+    out_name = f"{stem}_report.{REPORT_EXTENSIONS[fmt]}"
+    directory = output_dir if output_dir is not None else REPORTS_DIR
+    directory.mkdir(parents=True, exist_ok=True)
+    out_path = directory / out_name
 
     # ── JSON (machine-readable) ────────────────────────────────────────────
     if fmt == "json":
         out_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
-        log.debug("Wrote JSON report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        log.debug("Wrote JSON report → %s", out_path)
         return
 
     if fmt == "jsonl":
         out_path.write_text(json.dumps(result) + "\n", encoding="utf-8")
-        log.debug("Wrote JSONL report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        log.debug("Wrote JSONL report → %s", out_path)
         return
 
     if fmt == "csv":
@@ -99,7 +114,7 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
             writer.writerow(["field", "value"])
             for k, v in result.items():
                 writer.writerow([k, json.dumps(v) if isinstance(v, (dict, list)) else v])
-        log.debug("Wrote CSV report → %s", out_path.relative_to(REPORTS_DIR.parent))
+        log.debug("Wrote CSV report → %s", out_path)
         return
 
 
@@ -114,6 +129,17 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
     if result.get("summary"):
         lines.append(f"> {result['summary']}\n")
 
+    if result.get("enrichment"):
+        rows = []
+        for service, info in result["enrichment"].items():
+            rows.append([
+                service, info["status"], info.get("reason") or "—",
+                str(info.get("succeeded", 0)), str(info.get("failed", 0)),
+                str(info.get("not_found", 0)), str(info.get("skipped", 0)),
+            ])
+        lines.append("\n### Reputation checks\n")
+        lines.append(_md_table(["Service", "Status", "Reason", "Succeeded", "Failed", "Not found", "Skipped"], rows))
+
     # URLs
     if result.get("urls"):
         rows = []
@@ -122,12 +148,13 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
             rows.append(
                 [
                     f"`{url}`",
-                    str(rep.get("vendors", 0)),
+                    str(rep.get("vendors", "not checked")),
+                    _lookup_status(result, "virustotal", url, rep),
                     "⚠️" if rep.get("malicious") else "",
                 ]
             )
         lines.append("\n### URLs\n")
-        lines.append(_md_table(["URL", "VT vendors", "Flag"], rows))
+        lines.append(_md_table(["URL", "VT vendors", "Lookup status", "Flag"], rows))
 
     # IPs
     if result.get("ips"):
@@ -137,13 +164,14 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
             rows.append(
                 [
                     ip,
-                    str(rep.get("abuse_confidence", 0)),
-                    str(rep.get("total_reports", 0)),
+                    str(rep.get("abuse_confidence", "not checked")),
+                    str(rep.get("total_reports", "not checked")),
+                    _lookup_status(result, "abuseipdb", ip, rep),
                     "⚠️" if rep.get("malicious") else "",
                 ]
             )
         lines.append("\n### IPs\n")
-        lines.append(_md_table(["IP", "Confidence", "Reports", "Flag"], rows))
+        lines.append(_md_table(["IP", "Confidence", "Reports", "Lookup status", "Flag"], rows))
 
     # PDF-specific
     if result.get("type") == "pdf":
@@ -183,8 +211,24 @@ def generate_report(path: Path, result: Dict, fmt: str = "markdown") -> None:
         escaped = md_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         html_text = f"<html><body><pre>{escaped}</pre></body></html>"
         out_path.write_text(html_text, encoding="utf-8")
-        log.debug("Wrote HTML report -> %s", out_path.relative_to(REPORTS_DIR.parent))
+        log.debug("Wrote HTML report -> %s", out_path)
         return
 
     out_path.write_text(md_text, encoding="utf-8")
-    log.debug("Wrote Markdown report -> %s", out_path.relative_to(REPORTS_DIR.parent))
+    log.debug("Wrote Markdown report -> %s", out_path)
+
+
+def generate_batch_report(
+    records: list[dict], summary: dict, *, output_dir: Path,
+    offline: bool, started_at: str, elapsed: float,
+) -> Path:
+    """Write one JSON manifest including findings, skips, and per-file errors."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    destination = output_dir / "batch_summary.json"
+    payload = {
+        "schema_version": 1, "started_at": started_at,
+        "elapsed_seconds": round(elapsed, 3), "offline": offline,
+        "summary": summary, "files": records,
+    }
+    destination.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return destination

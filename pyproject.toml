@@ -6,7 +6,19 @@ build-backend = "setuptools.build_meta"
 name        = "ioc_inspector"
 version     = "0.0.0"
 description = "Static IOC extractor and scorer for PDFs & Office docs"
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[project.scripts]
+ioc-inspector = "main:cli"
 
 [tool.setuptools]
 packages   = ["ioc_inspector_core"]         # directories containing __init__.py
-py-modules = ["logger", "settings"]         # single-file modules at repo root
+py-modules = ["main", "logger", "settings"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.package-data]
+ioc_inspector_core = ["report_schema.json"]

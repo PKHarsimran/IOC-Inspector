@@ -1,5 +1,13 @@
 from unittest.mock import patch, MagicMock
+import base64
 from ioc_inspector_core.url_reputation import lookup_urls, _vt_url_id
+
+
+def test_url_id_encodes_original_url():
+    url = "https://example.com/path?q=hello&next=/a"
+    encoded = _vt_url_id(url)
+    assert "=" not in encoded
+    assert base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4)).decode() == url
 
 @patch('ioc_inspector_core.url_reputation.requests.get')
 def test_lookup_urls_success(mock_get, monkeypatch):

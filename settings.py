@@ -49,7 +49,9 @@ ABUSE_CONFIDENCE_CUTOFF = int(os.getenv("ABUSE_CONFIDENCE_CUTOFF", 70))  # %
 # Output formats written by default
 # Can be overridden per run:  --report / --json flags
 # -----------------------------------------------------------------------------
-REPORT_FORMATS: list[str] = os.getenv(
-    "REPORT_FORMATS", "markdown,json"
-).split(",")
+REPORT_FORMATS: list[str] = [
+    fmt.strip().lower()
+    for fmt in os.getenv("REPORT_FORMATS", "markdown,json").split(",")
+    if fmt.strip()
+]
 

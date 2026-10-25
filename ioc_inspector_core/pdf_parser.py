@@ -17,6 +17,7 @@ import fitz  # PyMuPDF
 
 from logger import get_logger
 from .exceptions import ParserError
+from .indicators import extract_ips, extract_urls
 
 log = get_logger(__name__)
 
@@ -24,13 +25,9 @@ log = get_logger(__name__)
 # ──────────────────────────────────────────────────────────────────────────────
 # Regex helpers
 # ──────────────────────────────────────────────────────────────────────────────
-_URL_RE = re.compile(r"https?://[\w.%/+&=?#~@:!\-]+", re.I)
-_IP_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-
-
 def _clean_urls(urls: List[str]) -> List[str]:
     """Strip trailing punctuation & deduplicate."""
-    return sorted({u.rstrip(").,;’\"") for u in urls})
+    return sorted({u.rstrip(".,;’\"") for u in urls})
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -48,10 +45,10 @@ def _detect_javascript(doc: "fitz.Document") -> int:
     """Return 1 if any JavaScript present, else 0."""
     if hasattr(doc, "is_scripted"):
         return int(doc.is_scripted) or 0
-    # Fallback: brute-scan raw xref streams
+    # JavaScript actions live in object dictionaries, often without a stream.
     for xref in range(1, doc.xref_length()):
         try:
-            if b"/JavaScript" in doc.xref_stream_raw(xref):
+            if re.search(r"/S\s*/JavaScript\b|/JS\b", doc.xref_object(xref)):
                 return 1
         except Exception:  # pragma: no cover
             pass
@@ -91,6 +88,7 @@ def parse_pdf(path: Path) -> Dict:
     # 2) Extract & process, catching any runtime errors
     try:
         urls: List[str] = []
+        ips: set[str] = set()
         for page in doc:
             # hyperlinks
             for link in page.get_links():
@@ -98,15 +96,17 @@ def parse_pdf(path: Path) -> Dict:
                 if uri:
                     urls.append(uri)
             # regex scrape from visible text
-            urls += _URL_RE.findall(_page_text(page))
+            text = _page_text(page)
+            urls.extend(extract_urls(text))
+            ips.update(extract_ips(text))
 
         urls = _clean_urls(urls)
-        ips = sorted(set(_IP_RE.findall(" ".join(urls))))
+        ips.update(extract_ips(" ".join(urls)))
 
         findings: Dict = {
             "type": "pdf",
             "urls": urls,
-            "ips": ips,
+            "ips": sorted(ips),
             "embedded_files": _count_embedded_files(doc),
             "js_count": _detect_javascript(doc),
         }

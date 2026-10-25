@@ -2,7 +2,7 @@
 
 lint:
 	ruff check .
-	mypy ioc_inspector_core main.py
+	mypy ioc_inspector_core main.py logger.py settings.py
 
 test:
 	pytest -q
