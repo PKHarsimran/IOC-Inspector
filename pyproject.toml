@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "ioc_inspector"
-version     = "0.0.0"
+version     = "0.2.0"
 description = "Static IOC extractor and scorer for PDFs & Office docs"
 readme = "README.md"
 requires-python = ">=3.10"
