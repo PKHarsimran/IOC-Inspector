@@ -41,22 +41,38 @@ def test_generate_json(tmp_path):
     assert data["verdict"] == "malicious"
     assert data["score"] == 100
     
-def test_generate_markdown_with_urls_ips(tmp_path):
+@pytest.mark.parametrize("url", [
+    "http://example.com",
+    "http://example.com.attacker.invalid/path",
+    "http://example.com@attacker.invalid/path",
+])
+def test_generate_markdown_with_urls_ips(tmp_path, url):
     src = tmp_path / "test.pdf"
     result = {
         "verdict": "suspicious",
         "score": 45,
         "summary": "URLs and IPs detected",
-        "urls": ["http://example.com"],
+        "urls": [url],
         "ips": ["192.168.1.1"],
-        "url_rep": {"http://example.com": {"vendors": 2, "malicious": False}},
+        "url_rep": {url: {"vendors": 2, "malicious": False}},
         "ip_rep": {"192.168.1.1": {"abuse_confidence": 50, "total_reports": 3, "malicious": False}},
     }
     rg.generate_report(src, result, fmt="markdown")
     out = tmp_path / "test_report.md"
     text = out.read_text()
-    assert "http://example.com" in text
-    assert "192.168.1.1" in text
+    # Compare complete cells: a URL embedded in another hostname or userinfo
+    # must not satisfy an assertion for the original URL.
+    rows = [
+        [cell.strip() for cell in line.split("|")[1:-1]]
+        for line in text.splitlines()
+        if line.startswith("| ")
+    ]
+    assert [row for row in rows if row[0].startswith("`")] == [
+        [f"`{url}`", "2", "success", ""],
+    ]
+    assert [row for row in rows if row[0] == "192.168.1.1"] == [
+        ["192.168.1.1", "50", "3", "success", ""],
+    ]
 
 
 def test_generate_csv(tmp_path):
